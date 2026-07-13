@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <!-- Brand / primary -->
+    <color name="primary">#00A651</color>
+    <color name="primary_strong">#00C46A</color>
+    <color name="on_primary">#04140C</color>
+
+    <!-- Surfaces -->
+    <color name="background">#0A1119</color>
+    <color name="surface">#111A24</color>
+    <color name="surface_2">#16212E</color>
+
+    <!-- Text -->
+    <color name="text_primary">#FFFFFFFF</color>
+    <color name="text_secondary">#9AA4B2</color>
+    <color name="text_tertiary">#6B7686</color>
+
+    <!-- Borders -->
+    <color name="border_subtle">#243141</color>
+    <color name="border_strong">#33475C</color>
+
+    <!-- Semantic -->
+    <color name="up_green">#00C46A</color>
+    <color name="down_red">#FF5B5B</color>
+    <color name="warning">#F5A623</color>
+    <color name="soft_green">#0C2A1E</color>
+
+    <!-- Company badges -->
+    <color name="badge_elm">#0B3C84</color>
+    <color name="badge_rjhi">#006644</color>
+    <color name="badge_arc">#02593A</color>
+    <color name="badge_stc">#4F008C</color>
+    <color name="badge_sabic">#0A5C36</color>
+    <color name="badge_maaden">#7A4F1D</color>
+    <color name="badge_snb">#1B5E20</color>
+    <color name="badge_alinma">#00695C</color>
+    <color name="badge_jarir">#B71C1C</color>
+    <color name="badge_acwa">#0D47A1</color>
+    <color name="badge_sec">#1565C0</color>
+    <color name="badge_riyad">#283593</color>
+    <color name="badge_almarai">#33691E</color>
+
+    <!-- Chart gradient helpers -->
+    <color name="chart_fill_top">#3300C46A</color>
+    <color name="chart_fill_bottom">#0000C46A</color>
+</resources>

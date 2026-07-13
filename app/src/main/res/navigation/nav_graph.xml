@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/signInFragment">
+
+    <fragment
+        android:id="@+id/signInFragment"
+        android:name="com.example.rasmal.ui.SignInFragment"
+        android:label="Sign In">
+        <action
+            android:id="@+id/action_signIn_to_dashboard"
+            app:destination="@id/dashboardFragment"
+            app:popUpTo="@id/signInFragment"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_signIn_to_signUp"
+            app:destination="@id/signUpFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/signUpFragment"
+        android:name="com.example.rasmal.ui.SignUpFragment"
+        android:label="Sign Up">
+        <action
+            android:id="@+id/action_signUp_to_onboarding"
+            app:destination="@id/onboardingPortfolioFragment" />
+        <action
+            android:id="@+id/action_signUp_to_signIn"
+            app:destination="@id/signInFragment"
+            app:popUpTo="@id/signInFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/onboardingPortfolioFragment"
+        android:name="com.example.rasmal.ui.OnboardingPortfolioFragment"
+        android:label="Portfolio">
+        <action
+            android:id="@+id/action_onboardingPortfolio_to_risk"
+            app:destination="@id/onboardingRiskFragment" />
+        <action
+            android:id="@+id/action_onboardingPortfolio_to_addStock"
+            app:destination="@id/addStockFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/addStockFragment"
+        android:name="com.example.rasmal.ui.AddStockFragment"
+        android:label="Add a stock">
+        <action
+            android:id="@+id/action_addStock_to_details"
+            app:destination="@id/addStockDetailsFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/addStockDetailsFragment"
+        android:name="com.example.rasmal.ui.AddStockDetailsFragment"
+        android:label="Add holding" />
+
+    <fragment
+        android:id="@+id/onboardingRiskFragment"
+        android:name="com.example.rasmal.ui.OnboardingRiskFragment"
+        android:label="Risk">
+        <action
+            android:id="@+id/action_onboardingRisk_to_dashboard"
+            app:destination="@id/dashboardFragment"
+            app:popUpTo="@id/signInFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/dashboardFragment"
+        android:name="com.example.rasmal.ui.DashboardFragment"
+        android:label="Dashboard">
+        <action
+            android:id="@+id/action_dashboard_to_aiRec"
+            app:destination="@id/aiRecommendationFragment" />
+        <action
+            android:id="@+id/action_dashboard_to_aiChat"
+            app:destination="@id/aiChatFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/aiRecommendationFragment"
+        android:name="com.example.rasmal.ui.AIRecommendationFragment"
+        android:label="AI Recommendation" />
+
+    <fragment
+        android:id="@+id/aiChatFragment"
+        android:name="com.example.rasmal.ui.AIChatFragment"
+        android:label="AI Chat" />
+</navigation>

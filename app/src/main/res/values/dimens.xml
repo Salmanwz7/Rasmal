@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 8dp spacing grid -->
+    <dimen name="space_4">4dp</dimen>
+    <dimen name="space_8">8dp</dimen>
+    <dimen name="space_12">12dp</dimen>
+    <dimen name="space_16">16dp</dimen>
+    <dimen name="space_20">20dp</dimen>
+    <dimen name="space_24">24dp</dimen>
+    <dimen name="space_32">32dp</dimen>
+
+    <!-- Corner radii -->
+    <dimen name="radius_sm">8dp</dimen>
+    <dimen name="radius_md">12dp</dimen>
+    <dimen name="radius_lg">16dp</dimen>
+    <dimen name="radius_xl">20dp</dimen>
+    <dimen name="radius_pill">999dp</dimen>
+    <dimen name="radius_button">14dp</dimen>
+
+    <!-- Common sizes -->
+    <dimen name="border_width">1dp</dimen>
+    <dimen name="card_elevation">2dp</dimen>
+    <dimen name="badge_size">44dp</dimen>
+    <dimen name="logo_size">64dp</dimen>
+    <dimen name="button_height">54dp</dimen>
+</resources>

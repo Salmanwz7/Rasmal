@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Rasmal</string>
+
+    <!-- Common -->
+    <string name="brand">Rasmal</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="full_name">Full name</string>
+    <string name="continue_label">Continue</string>
+
+    <!-- Sign in -->
+    <string name="welcome_back">Welcome back</string>
+    <string name="sign_in_subtitle">Sign in to your AI-powered portfolio</string>
+    <string name="forgot_password">Forgot password?</string>
+    <string name="sign_in">Sign In</string>
+    <string name="no_account">Don\'t have an account? </string>
+    <string name="sign_up">Sign Up</string>
+
+    <!-- Sign up -->
+    <string name="create_account">Create account</string>
+    <string name="sign_up_subtitle">Start investing smarter in Tadawul</string>
+    <string name="create_account_btn">Create Account</string>
+    <string name="have_account">Already have an account? </string>
+
+    <!-- Onboarding -->
+    <string name="your_current_portfolio">Your current portfolio</string>
+    <string name="available_cash">Available cash / liquidity</string>
+    <string name="stocks_you_own">Stocks you own</string>
+    <string name="add_a_stock">+ Add a stock</string>
+
+    <!-- Add stock: search -->
+    <string name="add_stock_title">Add a stock</string>
+    <string name="search_stocks_hint">Search by name or symbol…</string>
+    <string name="no_stocks_found">No stocks found</string>
+
+    <!-- Add stock: details -->
+    <string name="add_holding_title">Add holding</string>
+    <string name="number_of_shares">Number of shares</string>
+    <string name="shares_hint">e.g. 100</string>
+    <string name="avg_buy_price">Average buy price (SAR)</string>
+    <string name="avg_price_hint">e.g. 985.00</string>
+    <string name="add_to_portfolio">Add to Portfolio</string>
+    <string name="error_enter_shares">Enter the number of shares</string>
+    <string name="error_enter_price">Enter the average buy price</string>
+    <string name="risk_question">What\'s your risk appetite?</string>
+    <string name="risk_conservative">Conservative</string>
+    <string name="risk_conservative_desc">Prioritize capital preservation with steady, lower-risk returns.</string>
+    <string name="risk_balanced">Balanced</string>
+    <string name="risk_balanced_desc">A mix of growth and stability across sectors.</string>
+    <string name="risk_aggressive">Aggressive</string>
+    <string name="risk_aggressive_desc">Maximize growth and accept higher volatility.</string>
+
+    <!-- Dashboard -->
+    <string name="greeting">Salam, Salman</string>
+    <string name="tasi">TASI 12,480 +0.6%</string>
+    <string name="total_portfolio_value">Total portfolio value</string>
+    <string name="portfolio_value">SAR 148,230.50</string>
+    <string name="portfolio_delta">+2.15%</string>
+    <string name="portfolio_today">+ SAR 3,120 today</string>
+    <string name="ai_recommendation">✨ AI Recommendation</string>
+    <string name="ai_rec_text">Buy Elm (7203), range 990–1,020, target 1,200</string>
+    <string name="ai_rec_subtitle">Strong Q1 results and expanding digital-transformation pipeline.</string>
+    <string name="your_holdings">Your holdings</string>
+    <string name="see_all">See all</string>
+    <string name="total_return_placeholder">+18.4%</string>
+
+    <!-- AI Recommendation -->
+    <string name="ai_recommendation_title">AI Recommendation</string>
+    <string name="buy_confidence">BUY · 87% CONFIDENCE</string>
+    <string name="elm_company">Elm Company (7203)</string>
+    <string name="elm_sector">Technology · نقية Shariah compliant</string>
+    <string name="why_ai">Why the AI recommends this</string>
+    <string name="disclaimer">AI analysis, not financial advice. Markets carry risk, invest responsibly.</string>
+    <string name="did_you_execute">Did you execute this trade?</string>
+    <string name="i_bought_this">I bought this</string>
+    <string name="later">Later</string>
+
+    <!-- AI Chat -->
+    <string name="chip_full_analysis">Full analysis</string>
+    <string name="chip_riskier">Riskier options</string>
+    <string name="chip_arabic">أرني بالعربي</string>
+    <string name="chat_hint">Ask about any Saudi stock…</string>
+</resources>

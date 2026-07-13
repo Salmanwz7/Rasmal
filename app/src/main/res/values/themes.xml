@@ -1,0 +1,31 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Rasmal is dark-themed by default. The same dark palette is applied in
+         values/ and values-night/ so the app stays dark regardless of system setting. -->
+    <style name="Base.Theme.Rasmal" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/primary_strong</item>
+        <item name="colorOnPrimary">@color/on_primary</item>
+        <item name="colorPrimaryContainer">@color/soft_green</item>
+        <item name="colorOnPrimaryContainer">@color/primary_strong</item>
+
+        <item name="colorSurface">@color/surface</item>
+        <item name="colorOnSurface">@color/text_primary</item>
+        <item name="colorSurfaceVariant">@color/surface_2</item>
+        <item name="colorOnSurfaceVariant">@color/text_secondary</item>
+        <item name="colorOutline">@color/border_subtle</item>
+
+        <item name="android:colorBackground">@color/background</item>
+        <item name="android:windowBackground">@color/background</item>
+        <item name="android:textColorPrimary">@color/text_primary</item>
+        <item name="android:textColorSecondary">@color/text_secondary</item>
+        <item name="android:textColorHint">@color/text_tertiary</item>
+
+        <item name="android:statusBarColor">@color/background</item>
+        <item name="android:navigationBarColor">@color/background</item>
+        <item name="android:windowLightStatusBar">false</item>
+
+        <item name="materialCardViewStyle">@style/Widget.Rasmal.Card</item>
+    </style>
+
+    <style name="Theme.Rasmal" parent="Base.Theme.Rasmal" />
+</resources>
