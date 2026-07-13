@@ -18,17 +18,17 @@ Rasmal is a native Android app that lets a user sign up, describe their portfoli
 
 > Capture these from the running app (e.g. appetize.io has a screenshot button) and drop the PNGs into the [`screenshots/`](screenshots/) folder using the filenames below — they'll appear here automatically. See [`screenshots/README.md`](screenshots/README.md) for the exact list.
 
-| Sign In | Onboarding · Portfolio | Add Stock · Search |
+| Sign In | Sign Up | Onboarding · Portfolio |
 |---|---|---|
-| ![Sign In](screenshots/01-signin.png) | ![Portfolio](screenshots/03-onboarding-portfolio.png) | ![Search](screenshots/04-add-stock-search.png) |
+| ![Sign In](screenshots/01-signin.png) | ![Sign Up](screenshots/02-signup.png) | ![Portfolio](screenshots/03-onboarding-portfolio.png) |
 
-| Add Stock · Details | Onboarding · Risk | Dashboard |
+| Add Stock · Search | Add Stock · Details | Onboarding · Risk |
 |---|---|---|
-| ![Details](screenshots/05-add-stock-details.png) | ![Risk](screenshots/06-onboarding-risk.png) | ![Dashboard](screenshots/07-dashboard.png) |
+| ![Search](screenshots/04-add-stock-search.png) | ![Details](screenshots/05-add-stock-details.png) | ![Risk](screenshots/06-onboarding-risk.png) |
 
-| AI Recommendation | AI Chat |
-|---|---|
-| ![AI Recommendation](screenshots/08-ai-recommendation.png) | ![AI Chat](screenshots/09-ai-chat.png) |
+| Dashboard | AI Recommendation | AI Chat |
+|---|---|---|
+| ![Dashboard](screenshots/07-dashboard.png) | ![AI Recommendation](screenshots/08-ai-recommendation.png) | ![AI Chat](screenshots/09-ai-chat.png) |
 
 ---
 
