@@ -1,9 +1,12 @@
 package com.example.rasmal;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -13,6 +16,13 @@ import androidx.navigation.NavDestination;
 import androidx.navigation.NavOptions;
 import androidx.navigation.fragment.NavHostFragment;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import com.example.rasmal.auth.AuthCallback;
+import com.example.rasmal.auth.Session;
+import com.example.rasmal.auth.SessionManager;
+import com.example.rasmal.auth.SupabaseAuth;
 import com.example.rasmal.databinding.ActivityMainBinding;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
@@ -53,12 +63,110 @@ public class MainActivity extends AppCompatActivity {
                 navigateTab(R.id.aiChatFragment);
                 return true;
             }
+            if (id == R.id.nav_profile) {
+                showSignOutDialog();
+                return false;
+            }
             Toast.makeText(this, item.getTitle() + " — coming soon", Toast.LENGTH_SHORT).show();
             return false;
         });
 
         navController.addOnDestinationChangedListener((controller, destination, args) ->
                 updateBottomNav(nav, destination));
+
+        if (savedInstanceState == null && !handleAuthDeepLink(getIntent())) {
+            restoreSession();
+        }
+    }
+
+    /**
+     * Handles the rasmal://auth-callback redirect from Supabase confirmation emails.
+     * The tokens arrive in the URI fragment, formatted like a query string.
+     */
+    private boolean handleAuthDeepLink(Intent intent) {
+        Uri data = intent.getData();
+        if (data == null || !"rasmal".equals(data.getScheme())) return false;
+
+        String fragment = data.getFragment();
+        if (fragment == null) return false;
+        Uri params = Uri.parse("x://x?" + fragment);
+
+        String errorDescription = params.getQueryParameter("error_description");
+        if (errorDescription != null) {
+            Toast.makeText(this, errorDescription, Toast.LENGTH_LONG).show();
+            return false;
+        }
+
+        String refreshToken = params.getQueryParameter("refresh_token");
+        if (refreshToken == null) return false;
+
+        SessionManager sessionManager = new SessionManager(this);
+        SupabaseAuth.getInstance().refresh(refreshToken, new AuthCallback() {
+            @Override
+            public void onSuccess(@Nullable Session session) {
+                if (session == null) return;
+                sessionManager.save(session);
+                Toast.makeText(MainActivity.this,
+                        "Email confirmed — welcome!", Toast.LENGTH_LONG).show();
+                navController.navigate(sessionManager.isOnboarded(session.userId)
+                        ? R.id.action_signIn_to_dashboard
+                        : R.id.action_signIn_to_onboarding);
+            }
+
+            @Override
+            public void onError(@NonNull String message) {
+                Toast.makeText(MainActivity.this,
+                        "Email confirmed. Please sign in.", Toast.LENGTH_LONG).show();
+            }
+        });
+        return true;
+    }
+
+    private void showSignOutDialog() {
+        SessionManager sessionManager = new SessionManager(this);
+        Session session = sessionManager.load();
+        String email = session != null ? session.email : "";
+
+        new AlertDialog.Builder(this)
+                .setTitle("Sign out")
+                .setMessage(email.isEmpty()
+                        ? "Sign out of Rasmal?"
+                        : "Signed in as " + email + ". Sign out?")
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("Sign Out", (d, w) -> {
+                    if (session != null) {
+                        SupabaseAuth.getInstance().signOut(session.accessToken);
+                    }
+                    sessionManager.clear();
+                    NavOptions options = new NavOptions.Builder()
+                            .setPopUpTo(R.id.nav_graph, true)
+                            .build();
+                    navController.navigate(R.id.signInFragment, null, options);
+                })
+                .show();
+    }
+
+    /** Skips the sign-in screen when a session is stored, and refreshes it in the background. */
+    private void restoreSession() {
+        SessionManager sessionManager = new SessionManager(this);
+        Session stored = sessionManager.load();
+        if (stored == null) return;
+
+        navController.navigate(sessionManager.isOnboarded(stored.userId)
+                ? R.id.action_signIn_to_dashboard
+                : R.id.action_signIn_to_onboarding);
+
+        SupabaseAuth.getInstance().refresh(stored.refreshToken, new AuthCallback() {
+            @Override
+            public void onSuccess(@Nullable Session session) {
+                if (session != null) sessionManager.save(session);
+            }
+
+            @Override
+            public void onError(@NonNull String message) {
+                // Network errors are tolerated; the stored session may still be valid.
+            }
+        });
     }
 
     private void updateBottomNav(BottomNavigationView nav, NavDestination destination) {

@@ -13,6 +13,7 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
 import com.example.rasmal.R;
+import com.example.rasmal.auth.SessionManager;
 import com.example.rasmal.databinding.FragmentOnboardingRiskBinding;
 import com.google.android.material.card.MaterialCardView;
 
@@ -37,9 +38,11 @@ public class OnboardingRiskFragment extends Fragment {
         binding.cardAggressive.setOnClickListener(v ->
                 select(binding.cardAggressive, binding.radioAggressive));
 
-        binding.continueBtn.setOnClickListener(v ->
-                NavHostFragment.findNavController(this)
-                        .navigate(R.id.action_onboardingRisk_to_dashboard));
+        binding.continueBtn.setOnClickListener(v -> {
+            new SessionManager(requireContext()).setOnboarded();
+            NavHostFragment.findNavController(this)
+                    .navigate(R.id.action_onboardingRisk_to_dashboard);
+        });
     }
 
     private void select(MaterialCardView selectedCard, ImageView selectedRadio) {

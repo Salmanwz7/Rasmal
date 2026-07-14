@@ -16,6 +16,11 @@
         <action
             android:id="@+id/action_signIn_to_signUp"
             app:destination="@id/signUpFragment" />
+        <action
+            android:id="@+id/action_signIn_to_onboarding"
+            app:destination="@id/onboardingPortfolioFragment"
+            app:popUpTo="@id/signInFragment"
+            app:popUpToInclusive="true" />
     </fragment>
 
     <fragment
