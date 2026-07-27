@@ -55,6 +55,18 @@
         <item name="android:textColor">@color/text_secondary</item>
     </style>
 
+    <!-- ===== Dialogs ===== -->
+    <!-- MaterialAlertDialogBuilder doesn't pick up the app's dark colorSurface
+         override on its own, so dialogs render with the library's light default
+         background unless given this overlay explicitly. -->
+    <style name="ThemeOverlay.Rasmal.AlertDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="colorSurface">@color/surface</item>
+        <item name="colorOnSurface">@color/text_primary</item>
+        <item name="colorOnSurfaceVariant">@color/text_secondary</item>
+        <item name="colorPrimary">@color/primary_strong</item>
+        <item name="colorOutline">@color/border_subtle</item>
+    </style>
+
     <!-- ===== Inputs ===== -->
     <style name="Widget.Rasmal.TextInputLayout" parent="Widget.Material3.TextInputLayout.OutlinedBox">
         <item name="boxBackgroundColor">@color/surface</item>

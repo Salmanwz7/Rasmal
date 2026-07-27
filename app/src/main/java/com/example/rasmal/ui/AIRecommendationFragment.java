@@ -182,7 +182,7 @@ public class AIRecommendationFragment extends Fragment {
         qtyInput.setText(String.valueOf(suggestedQty));
         if (suggestedPrice > 0) priceInput.setText(String.format(Locale.US, "%.2f", suggestedPrice));
 
-        new MaterialAlertDialogBuilder(requireContext())
+        new MaterialAlertDialogBuilder(requireContext(), R.style.ThemeOverlay_Rasmal_AlertDialog)
                 .setTitle(R.string.confirm_trade_title)
                 .setView(form)
                 .setNegativeButton(R.string.cancel, null)

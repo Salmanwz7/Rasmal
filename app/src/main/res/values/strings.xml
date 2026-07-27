@@ -78,6 +78,12 @@
     <string name="record_trade">I executed this trade</string>
     <string name="later">Later</string>
 
+    <!-- Portfolio tab: edit liquidity -->
+    <string name="edit_label">Edit</string>
+    <string name="edit_liquidity_title">Edit liquidity</string>
+    <string name="error_enter_liquidity">Enter your available cash</string>
+    <string name="liquidity_update_failed">Couldn\'t update liquidity: %1$s</string>
+
     <!-- Trade confirmation dialog (Story 009) -->
     <string name="confirm_trade_title">Confirm trade</string>
     <string name="buy_or_sell">Did you buy or sell?</string>
