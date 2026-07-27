@@ -107,7 +107,7 @@ public class MainActivity extends AppCompatActivity {
                 if (session == null) return;
                 sessionManager.save(session);
                 Toast.makeText(MainActivity.this,
-                        "Email confirmed — welcome!", Toast.LENGTH_LONG).show();
+                        "Email confirmed, welcome!", Toast.LENGTH_LONG).show();
                 navController.navigate(sessionManager.isOnboarded(session.userId)
                         ? R.id.action_signIn_to_dashboard
                         : R.id.action_signIn_to_onboarding);

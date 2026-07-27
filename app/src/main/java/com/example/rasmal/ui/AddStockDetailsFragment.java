@@ -15,6 +15,7 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
 import com.example.rasmal.R;
+import com.example.rasmal.data.ApiClient;
 import com.example.rasmal.data.MockData;
 import com.example.rasmal.databinding.FragmentAddStockDetailsBinding;
 import com.example.rasmal.model.Holding;
@@ -26,6 +27,7 @@ public class AddStockDetailsFragment extends Fragment {
 
     private FragmentAddStockDetailsBinding binding;
     private Stock stock;
+    private ApiClient api;
 
     @Nullable
     @Override
@@ -37,6 +39,7 @@ public class AddStockDetailsFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        api = new ApiClient(requireContext());
         String code = getArguments() != null
                 ? getArguments().getString(AddStockFragment.ARG_STOCK_CODE) : null;
         stock = MockData.stockByCode(code);
@@ -79,6 +82,17 @@ public class AddStockDetailsFragment extends Fragment {
 
         MockData.onboardingHoldings().add(
                 new Holding(stock.name, stock.code, stock.badge, stock.badgeColorRes, shares, price));
+
+        // Persist to Supabase (best-effort). Use the application context for the
+        // toast since we navigate away immediately and this fragment may be gone.
+        final android.content.Context appCtx = requireContext().getApplicationContext();
+        api.upsertHolding(stock.code, shares, price, new ApiClient.Callback<Void>() {
+            @Override public void onSuccess(Void unused) { }
+            @Override public void onError(String message) {
+                Toast.makeText(appCtx, "Saved on device; sync failed: " + message,
+                        Toast.LENGTH_SHORT).show();
+            }
+        });
 
         // Pop straight back to the portfolio screen (past the search screen).
         NavHostFragment.findNavController(this)

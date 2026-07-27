@@ -1,0 +1,13 @@
+# Minimal Supabase CLI config. Replace project_id with the shared project's ref
+# (Dashboard → Settings → General → Reference ID) or run `supabase link` which
+# writes it for you. Coordinate with Firas — this is the shared project.
+project_id = "YOUR_PROJECT_REF"
+
+[functions.market-refresh]
+verify_jwt = false   # protected by the CRON_SECRET header instead
+
+[functions.recommendations]
+verify_jwt = true
+
+[functions.chat]
+verify_jwt = true
