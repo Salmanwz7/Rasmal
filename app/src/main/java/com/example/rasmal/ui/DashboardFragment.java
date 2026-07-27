@@ -36,6 +36,7 @@ public class DashboardFragment extends Fragment {
 
     private FragmentDashboardBinding binding;
     private ApiClient api;
+    private double liquidity = 0;
 
     @Nullable
     @Override
@@ -65,12 +66,11 @@ public class DashboardFragment extends Fragment {
         if (name != null) binding.greeting.setText("Salam, " + name);
     }
 
-    /** Loads the company catalog, the user's saved liquidity, then holdings + live quotes. */
+    /** Loads the company catalog, then the user's saved liquidity, then holdings + live quotes. */
     private void loadPortfolio() {
-        loadLiquidity();
         api.getCompanyCatalog(new ApiClient.Callback<List<Stock>>() {
-            @Override public void onSuccess(List<Stock> stocks) { loadHoldings(); }
-            @Override public void onError(String message) { loadHoldings(); }
+            @Override public void onSuccess(List<Stock> stocks) { loadLiquidity(); }
+            @Override public void onError(String message) { loadLiquidity(); }
         });
     }
 
@@ -101,21 +101,29 @@ public class DashboardFragment extends Fragment {
         binding.holdingsList.setVisibility(View.GONE);
         binding.emptyHoldings.setText(messageRes);
         binding.emptyHoldings.setVisibility(View.VISIBLE);
-        binding.portfolioValue.setText("SAR 0");
+        // No holdings, so total assets are just the cash on hand.
+        binding.portfolioValue.setText("SAR " + money(liquidity));
         binding.portfolioDelta.setText("0.00%");
         binding.todayPnl.setText("");
         binding.totalReturnValue.setText("0.00%");
     }
 
-    /** Fills the liquidity tile from the user's saved profile (Story 003). */
+    /** Loads the user's saved liquidity (Story 003), then holdings + live quotes. */
     private void loadLiquidity() {
         api.getProfile(new ApiClient.Callback<JSONObject>() {
             @Override public void onSuccess(JSONObject profile) {
                 if (binding == null) return;
                 double liq = profile.optDouble("liquidity", -1);
-                if (liq >= 0) binding.liquidityValue.setText(money(liq));
+                if (liq >= 0) {
+                    liquidity = liq;
+                    binding.liquidityValue.setText(money(liquidity));
+                }
+                loadHoldings();
             }
-            @Override public void onError(String message) { /* keep last-known value */ }
+            @Override public void onError(String message) {
+                if (binding == null) return;
+                loadHoldings(); // still show holdings even if the profile fetch failed
+            }
         });
     }
 
@@ -127,7 +135,7 @@ public class DashboardFragment extends Fragment {
         }
 
         List<Holding> rows = new ArrayList<>();
-        double totalValue = 0, totalCost = 0, totalPrev = 0;
+        double holdingsValue = 0, totalCost = 0, totalPrev = 0;
 
         for (int i = 0; i < holdings.length(); i++) {
             JSONObject h = holdings.optJSONObject(i);
@@ -143,7 +151,7 @@ public class DashboardFragment extends Fragment {
             // Fall back to reconstructing yesterday's close from the day's % move.
             if (prevClose <= 0) prevClose = changePct > -100 ? price / (1 + changePct / 100) : price;
 
-            totalValue += shares * price;
+            holdingsValue += shares * price;
             totalCost += shares * avg;
             totalPrev += shares * prevClose;
 
@@ -164,10 +172,11 @@ public class DashboardFragment extends Fragment {
         binding.emptyHoldings.setVisibility(View.GONE);
         binding.holdingsList.setVisibility(View.VISIBLE);
         binding.holdingsList.setAdapter(new DashboardHoldingAdapter(rows));
-        binding.portfolioValue.setText("SAR " + money(totalValue));
+        // Total portfolio value = cash on hand + current market value of holdings.
+        binding.portfolioValue.setText("SAR " + money(liquidity + holdingsValue));
 
-        renderTodayPnl(totalValue - totalPrev, totalPrev);
-        renderTotalReturn(totalValue - totalCost, totalCost);
+        renderTodayPnl(holdingsValue - totalPrev, totalPrev);
+        renderTotalReturn(holdingsValue - totalCost, totalCost);
     }
 
     /** Hero pill (today's %) + adjacent SAR amount, coloured for up/down. */

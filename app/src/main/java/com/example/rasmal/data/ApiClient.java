@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -43,7 +44,14 @@ public class ApiClient {
 
     private static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
 
-    private final OkHttpClient client = new OkHttpClient();
+    // recommendations/chat proxy to an LLM and can fall through several free
+    // models on rate limits (observed ~9-13s per call); OkHttp's 10s default
+    // read timeout was firing mid-response and surfacing as "Network error".
+    private final OkHttpClient client = new OkHttpClient.Builder()
+            .connectTimeout(15, TimeUnit.SECONDS)
+            .readTimeout(60, TimeUnit.SECONDS)
+            .writeTimeout(30, TimeUnit.SECONDS)
+            .build();
     private final Handler main = new Handler(Looper.getMainLooper());
     private final SessionManager sessions;
 
