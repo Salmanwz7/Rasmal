@@ -92,6 +92,11 @@ Deno.serve(async (req) => {
   const topData = dataset.find((d) => d.code === top.code)!;
   const price = quote.get(top.code)?.price ?? 0;
 
+  // `amount` is the only field liquidity affects (buy/target/stop are pure
+  // price+confidence+risk math), but it changes per user/request, so it must
+  // never be served stale from the cache below — recompute it unconditionally.
+  const trade = deriveTrade(price || 0, top.confidence, risk, liquidity);
+
   // --- Serve a fresh cached recommendation if we have one ---
   const cached = await db.from("recommendations").select("*")
     .eq("code", top.code).eq("risk_profile", risk).maybeSingle();
@@ -99,10 +104,12 @@ Deno.serve(async (req) => {
     cached.data &&
     Date.now() - new Date(cached.data.generated_at).getTime() < FRESH_MS
   ) {
-    return json({ pick: cached.data, ranking, cached: true });
+    return json({
+      pick: { ...cached.data, amount: trade.amount },
+      ranking,
+      cached: true,
+    });
   }
-
-  const trade = deriveTrade(price || 0, top.confidence, risk, liquidity);
 
   // --- Narrative: LLM preferred, rules-only fallback ---
   let narrative = "";
