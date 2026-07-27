@@ -8,6 +8,7 @@ import androidx.annotation.Nullable;
 
 import com.example.rasmal.BuildConfig;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -47,7 +48,7 @@ public class SupabaseAuth {
             callback.onError("Unexpected error building request.");
             return;
         }
-        execute(buildRequest(AUTH_BASE + "/signup", body), callback);
+        execute(buildRequest(AUTH_BASE + "/signup", body), callback, true);
     }
 
     public void signIn(String email, String password, AuthCallback callback) {
@@ -59,7 +60,7 @@ public class SupabaseAuth {
             callback.onError("Unexpected error building request.");
             return;
         }
-        execute(buildRequest(AUTH_BASE + "/token?grant_type=password", body), callback);
+        execute(buildRequest(AUTH_BASE + "/token?grant_type=password", body), callback, false);
     }
 
     public void refresh(String refreshToken, AuthCallback callback) {
@@ -70,7 +71,7 @@ public class SupabaseAuth {
             callback.onError("Unexpected error building request.");
             return;
         }
-        execute(buildRequest(AUTH_BASE + "/token?grant_type=refresh_token", body), callback);
+        execute(buildRequest(AUTH_BASE + "/token?grant_type=refresh_token", body), callback, false);
     }
 
     /** Revokes the session server-side. Fire-and-forget: local sign-out proceeds regardless. */
@@ -101,7 +102,7 @@ public class SupabaseAuth {
                 .build();
     }
 
-    private void execute(Request request, AuthCallback callback) {
+    private void execute(Request request, AuthCallback callback, boolean signUp) {
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
@@ -115,7 +116,16 @@ public class SupabaseAuth {
                     JSONObject json = raw.isEmpty() ? new JSONObject() : new JSONObject(raw);
                     if (r.isSuccessful()) {
                         Session session = parseSession(json);
-                        mainHandler.post(() -> callback.onSuccess(session));
+                        // When email confirmation is enabled, Supabase does NOT return an
+                        // error for a duplicate sign-up (to prevent email enumeration) — it
+                        // returns a 200 with an obfuscated user whose identities array is
+                        // empty. Detect that and surface the "already exists" message.
+                        if (session == null && signUp && isExistingUser(json)) {
+                            postError(callback,
+                                    "An account with this email already exists. Try signing in.");
+                        } else {
+                            mainHandler.post(() -> callback.onSuccess(session));
+                        }
                     } else {
                         postError(callback, friendlyError(json));
                     }
@@ -124,6 +134,18 @@ public class SupabaseAuth {
                 }
             }
         });
+    }
+
+    /**
+     * True when a sign-up response describes an already-registered user. Supabase's
+     * enumeration-protection returns a user object with an empty {@code identities}
+     * array in that case; a genuinely new user has at least one identity.
+     */
+    private boolean isExistingUser(JSONObject json) {
+        JSONObject user = json.optJSONObject("user");
+        JSONObject u = user != null ? user : json;
+        JSONArray identities = u.optJSONArray("identities");
+        return identities != null && identities.length() == 0;
     }
 
     @Nullable
@@ -150,7 +172,7 @@ public class SupabaseAuth {
         if (code.isEmpty()) code = json.optString("code", "");
         switch (code) {
             case "email_not_confirmed":
-                return "Please confirm your email first — check your inbox for the link.";
+                return "Please confirm your email first, check your inbox for the link.";
             case "invalid_credentials":
                 return "Incorrect email or password.";
             case "user_already_exists":

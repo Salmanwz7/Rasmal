@@ -15,17 +15,24 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
 import com.example.rasmal.R;
+import com.example.rasmal.data.ApiClient;
 import com.example.rasmal.data.MockData;
 import com.example.rasmal.databinding.FragmentAddStockDetailsBinding;
 import com.example.rasmal.model.Holding;
 import com.example.rasmal.model.Stock;
 
+import java.util.List;
 import java.util.Locale;
 
 public class AddStockDetailsFragment extends Fragment {
 
+    /** When present (shares &gt; 0) the screen edits an existing holding instead of adding one. */
+    static final String ARG_EDIT_SHARES = "edit_shares";
+    static final String ARG_EDIT_PRICE = "edit_price";
+
     private FragmentAddStockDetailsBinding binding;
     private Stock stock;
+    private ApiClient api;
 
     @Nullable
     @Override
@@ -37,6 +44,7 @@ public class AddStockDetailsFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        api = new ApiClient(requireContext());
         String code = getArguments() != null
                 ? getArguments().getString(AddStockFragment.ARG_STOCK_CODE) : null;
         stock = MockData.stockByCode(code);
@@ -52,16 +60,26 @@ public class AddStockDetailsFragment extends Fragment {
                 ContextCompat.getColor(requireContext(), stock.badgeColorRes)));
         binding.name.setText(stock.name);
         binding.subtitle.setText(String.format(Locale.US, "%s · %s", stock.code, stock.sector));
-        // Pre-fill avg price with the last price as a sensible starting point.
-        binding.price.setText(formatPrice(stock.price));
+
+        int editShares = getArguments() != null ? getArguments().getInt(ARG_EDIT_SHARES, 0) : 0;
+        double editPrice = getArguments() != null ? getArguments().getDouble(ARG_EDIT_PRICE, 0) : 0;
+        if (editShares > 0) {
+            binding.screenTitle.setText(R.string.edit_holding_title);
+            binding.addBtn.setText(R.string.save_changes);
+            binding.shares.setText(String.valueOf(editShares));
+            binding.price.setText(formatPrice(editPrice > 0 ? editPrice : stock.price));
+        } else {
+            // Pre-fill avg price with the last price as a sensible starting point.
+            binding.price.setText(formatPrice(stock.price));
+        }
 
         binding.back.setOnClickListener(v ->
                 NavHostFragment.findNavController(this).navigateUp());
 
-        binding.addBtn.setOnClickListener(v -> addHolding());
+        binding.addBtn.setOnClickListener(v -> saveHolding());
     }
 
-    private void addHolding() {
+    private void saveHolding() {
         String sharesText = binding.shares.getText().toString().trim();
         String priceText = binding.price.getText().toString().trim();
 
@@ -77,12 +95,34 @@ public class AddStockDetailsFragment extends Fragment {
         int shares = parseInt(sharesText);
         double price = parseDouble(priceText);
 
-        MockData.onboardingHoldings().add(
-                new Holding(stock.name, stock.code, stock.badge, stock.badgeColorRes, shares, price));
+        upsertLocal(new Holding(stock.name, stock.code, stock.badge, stock.badgeColorRes, shares, price));
+
+        // Persist to Supabase (best-effort). Use the application context for the
+        // toast since we navigate away immediately and this fragment may be gone.
+        final android.content.Context appCtx = requireContext().getApplicationContext();
+        api.upsertHolding(stock.code, shares, price, new ApiClient.Callback<Void>() {
+            @Override public void onSuccess(Void unused) { }
+            @Override public void onError(String message) {
+                Toast.makeText(appCtx, "Saved on device; sync failed: " + message,
+                        Toast.LENGTH_SHORT).show();
+            }
+        });
 
         // Pop straight back to the portfolio screen (past the search screen).
         NavHostFragment.findNavController(this)
                 .popBackStack(R.id.onboardingPortfolioFragment, false);
+    }
+
+    /** Replace the in-memory holding with the same code if present, otherwise append. */
+    private void upsertLocal(Holding h) {
+        List<Holding> list = MockData.onboardingHoldings();
+        for (int i = 0; i < list.size(); i++) {
+            if (h.code.equals(list.get(i).code)) {
+                list.set(i, h);
+                return;
+            }
+        }
+        list.add(h);
     }
 
     private int parseInt(String s) {

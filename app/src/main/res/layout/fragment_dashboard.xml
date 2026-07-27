@@ -29,6 +29,7 @@
                 android:orientation="vertical">
 
                 <TextView
+                    android:id="@+id/greeting"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/greeting"
@@ -86,6 +87,7 @@
                     android:textSize="14sp" />
 
                 <TextView
+                    android:id="@+id/portfolio_value"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/space_4"
@@ -102,6 +104,7 @@
                     android:orientation="horizontal">
 
                     <TextView
+                        android:id="@+id/portfolio_delta"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:background="@drawable/bg_pill_green"
@@ -113,6 +116,7 @@
                         android:textStyle="bold" />
 
                     <TextView
+                        android:id="@+id/today_pnl"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="@dimen/space_8"
@@ -162,6 +166,7 @@
                         tools:ignore="HardcodedText" />
 
                     <TextView
+                        android:id="@+id/liquidity_value"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/space_4"
@@ -198,6 +203,7 @@
                         tools:ignore="HardcodedText" />
 
                     <TextView
+                        android:id="@+id/total_return_value"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/space_4"

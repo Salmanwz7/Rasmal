@@ -57,6 +57,7 @@
                 android:padding="@dimen/space_20">
 
                 <TextView
+                    android:id="@+id/confidence_pill"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:background="@drawable/bg_pill_green"
@@ -68,6 +69,7 @@
                     android:textStyle="bold" />
 
                 <TextView
+                    android:id="@+id/company_name"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/space_16"
@@ -77,6 +79,7 @@
                     android:textStyle="bold" />
 
                 <TextView
+                    android:id="@+id/company_sector"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/space_4"
@@ -190,7 +193,7 @@
                 android:id="@+id/bought_btn"
                 style="@style/Widget.Rasmal.Button.Primary"
                 android:layout_marginTop="@dimen/space_12"
-                android:text="@string/i_bought_this" />
+                android:text="@string/record_trade" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/later_btn"
