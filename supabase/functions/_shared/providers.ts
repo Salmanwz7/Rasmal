@@ -190,7 +190,17 @@ async function callModel(key: string, model: string, messages: ChatMessage[]) {
       "HTTP-Referer": "https://github.com/Salmanwz7/Rasmal",
       "X-Title": "Rasmal",
     },
-    body: JSON.stringify({ model, messages, temperature: 0.4, max_tokens: 600 }),
+    // include_reasoning: false tells reasoning-capable free models (seen live on
+    // gpt-oss-20b:free) to keep their chain-of-thought out of `content` instead
+    // of leaking it into the visible reply. max_tokens raised for the fuller,
+    // multi-section analyses the chat/recommendations prompts now ask for.
+    body: JSON.stringify({
+      model,
+      messages,
+      temperature: 0.4,
+      max_tokens: 900,
+      include_reasoning: false,
+    }),
   });
 }
 
