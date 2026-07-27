@@ -1,9 +1,11 @@
 package com.example.rasmal.ui;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -13,6 +15,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.rasmal.R;
 import com.example.rasmal.adapter.PortfolioHoldingAdapter;
+import com.example.rasmal.data.ApiClient;
 import com.example.rasmal.data.MockData;
 import com.example.rasmal.databinding.FragmentOnboardingPortfolioBinding;
 import com.example.rasmal.model.Holding;
@@ -27,6 +30,7 @@ public class OnboardingPortfolioFragment extends Fragment {
     private FragmentOnboardingPortfolioBinding binding;
     private List<Holding> holdings;
     private PortfolioHoldingAdapter adapter;
+    private ApiClient api;
 
     @Nullable
     @Override
@@ -38,8 +42,12 @@ public class OnboardingPortfolioFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        api = new ApiClient(requireContext());
         holdings = MockData.onboardingHoldings();
-        adapter = new PortfolioHoldingAdapter(holdings);
+        adapter = new PortfolioHoldingAdapter(holdings, new PortfolioHoldingAdapter.Listener() {
+            @Override public void onEdit(Holding h) { editHolding(h); }
+            @Override public void onRemove(Holding h) { removeHolding(h); }
+        });
         binding.holdingsList.setLayoutManager(new LinearLayoutManager(requireContext()));
         binding.holdingsList.setAdapter(adapter);
 
@@ -52,6 +60,28 @@ public class OnboardingPortfolioFragment extends Fragment {
             args.putDouble(ARG_LIQUIDITY, parseLiquidity());
             NavHostFragment.findNavController(this)
                     .navigate(R.id.action_onboardingPortfolio_to_risk, args);
+        });
+    }
+
+    /** Opens the details screen pre-filled with this holding's shares + price. */
+    private void editHolding(Holding h) {
+        Bundle args = new Bundle();
+        args.putString(AddStockFragment.ARG_STOCK_CODE, h.code);
+        args.putInt(AddStockDetailsFragment.ARG_EDIT_SHARES, h.shares);
+        args.putDouble(AddStockDetailsFragment.ARG_EDIT_PRICE, h.buyPrice);
+        NavHostFragment.findNavController(this)
+                .navigate(R.id.action_onboardingPortfolio_to_details, args);
+    }
+
+    /** The row was already dropped locally; delete it from Supabase (best-effort). */
+    private void removeHolding(Holding h) {
+        final Context appCtx = requireContext().getApplicationContext();
+        api.deleteHolding(h.code, new ApiClient.Callback<Void>() {
+            @Override public void onSuccess(Void unused) { }
+            @Override public void onError(String message) {
+                Toast.makeText(appCtx, "Removed on device; sync failed: " + message,
+                        Toast.LENGTH_SHORT).show();
+            }
         });
     }
 

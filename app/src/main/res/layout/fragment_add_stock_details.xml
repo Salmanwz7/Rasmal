@@ -33,6 +33,7 @@
                 app:tint="@color/text_primary" />
 
             <TextView
+                android:id="@+id/screen_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/space_8"

@@ -41,6 +41,8 @@
     <string name="avg_buy_price">Average buy price (SAR)</string>
     <string name="avg_price_hint">e.g. 985.00</string>
     <string name="add_to_portfolio">Add to Portfolio</string>
+    <string name="edit_holding_title">Edit holding</string>
+    <string name="save_changes">Save changes</string>
     <string name="error_enter_shares">Enter the number of shares</string>
     <string name="error_enter_price">Enter the average buy price</string>
     <string name="risk_question">What\'s your risk appetite?</string>

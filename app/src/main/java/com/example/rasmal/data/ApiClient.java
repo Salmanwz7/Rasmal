@@ -180,6 +180,30 @@ public class ApiClient {
         });
     }
 
+    /** Deletes the current user's holding for the given code (RLS scopes it to them). */
+    public void deleteHolding(String code, Callback<Void> cb) {
+        Session s = sessions.load();
+        if (s == null) { cb.onError("You're signed out. Please sign in again."); return; }
+        Request req = new Request.Builder()
+                .url(rest() + "/holdings?code=eq." + code)
+                .header("apikey", BuildConfig.SUPABASE_ANON_KEY)
+                .header("Authorization", "Bearer " + s.accessToken)
+                .header("Prefer", "return=minimal")
+                .delete()
+                .build();
+        client.newCall(req).enqueue(new okhttp3.Callback() {
+            @Override public void onFailure(@NonNull okhttp3.Call call, @NonNull IOException e) {
+                postError(cb, "Network error. Check your connection.");
+            }
+            @Override public void onResponse(@NonNull okhttp3.Call call, @NonNull Response response) {
+                try (Response r = response) {
+                    if (r.isSuccessful()) main.post(() -> cb.onSuccess(null));
+                    else postError(cb, "Couldn't remove holding (" + r.code() + ").");
+                }
+            }
+        });
+    }
+
     // --- Internals ---------------------------------------------------------
 
     /** Base request builder with apikey + bearer token, or null if signed out. */
