@@ -29,13 +29,17 @@ import java.util.Locale;
 /** Shows the top AI recommendation from the backend scoring engine. */
 public class AIRecommendationFragment extends Fragment {
 
-    // TODO: source these from the user's saved onboarding answers once persisted.
-    private static final String RISK_PROFILE = "balanced";
-    private static final double LIQUIDITY = 100000d;
+    // Fallbacks used only until the user's saved profile loads (or if it's missing).
+    private static final String DEFAULT_RISK = "balanced";
+    private static final double DEFAULT_LIQUIDITY = 100000d;
 
     private FragmentAiRecommendationBinding binding;
     private ApiClient api;
     private Recommendation rec;
+
+    // Sourced from the user's saved onboarding profile (Stories 003 & 004).
+    private String riskProfile = DEFAULT_RISK;
+    private double liquidity = DEFAULT_LIQUIDITY;
 
     @Nullable
     @Override
@@ -63,7 +67,25 @@ public class AIRecommendationFragment extends Fragment {
         binding.boughtBtn.setOnClickListener(v -> recordTrade());
 
         showLoading();
-        loadRecommendation();
+        loadProfileThenRecommend();
+    }
+
+    /** Load the saved risk profile + liquidity, then request a recommendation. */
+    private void loadProfileThenRecommend() {
+        api.getProfile(new ApiClient.Callback<JSONObject>() {
+            @Override public void onSuccess(JSONObject profile) {
+                if (binding == null) return;
+                String r = profile.optString("risk_profile", "");
+                if (!r.isEmpty()) riskProfile = r;
+                double liq = profile.optDouble("liquidity", 0);
+                if (liq > 0) liquidity = liq;
+                loadRecommendation();
+            }
+            @Override public void onError(String message) {
+                if (binding == null) return;
+                loadRecommendation(); // fall back to defaults
+            }
+        });
     }
 
     private void showLoading() {
@@ -75,7 +97,7 @@ public class AIRecommendationFragment extends Fragment {
     }
 
     private void loadRecommendation() {
-        api.getRecommendation(RISK_PROFILE, LIQUIDITY, new ApiClient.Callback<JSONObject>() {
+        api.getRecommendation(riskProfile, liquidity, new ApiClient.Callback<JSONObject>() {
             @Override public void onSuccess(JSONObject resp) {
                 if (binding == null) return;
                 JSONObject pick = resp.optJSONObject("pick");

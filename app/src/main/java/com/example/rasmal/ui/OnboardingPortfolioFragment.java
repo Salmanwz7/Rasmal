@@ -21,6 +21,9 @@ import java.util.List;
 
 public class OnboardingPortfolioFragment extends Fragment {
 
+    /** Bundle key carrying the entered available cash to the risk screen. */
+    static final String ARG_LIQUIDITY = "liquidity";
+
     private FragmentOnboardingPortfolioBinding binding;
     private List<Holding> holdings;
     private PortfolioHoldingAdapter adapter;
@@ -44,9 +47,22 @@ public class OnboardingPortfolioFragment extends Fragment {
                 NavHostFragment.findNavController(this)
                         .navigate(R.id.action_onboardingPortfolio_to_addStock));
 
-        binding.continueBtn.setOnClickListener(v ->
-                NavHostFragment.findNavController(this)
-                        .navigate(R.id.action_onboardingPortfolio_to_risk));
+        binding.continueBtn.setOnClickListener(v -> {
+            Bundle args = new Bundle();
+            args.putDouble(ARG_LIQUIDITY, parseLiquidity());
+            NavHostFragment.findNavController(this)
+                    .navigate(R.id.action_onboardingPortfolio_to_risk, args);
+        });
+    }
+
+    /** Reads the cash field, tolerating grouping commas and a stray "SAR"/spaces. */
+    private double parseLiquidity() {
+        String raw = binding.liquidity.getText().toString().replaceAll("[^0-9.]", "");
+        try {
+            return raw.isEmpty() ? 0d : Double.parseDouble(raw);
+        } catch (NumberFormatException e) {
+            return 0d;
+        }
     }
 
     @Override

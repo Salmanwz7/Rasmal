@@ -98,6 +98,54 @@ public class ApiClient {
         enqueueArray(req, cb);
     }
 
+    /** GET /rest/v1/profiles → the current user's profile row, or an empty object. */
+    public void getProfile(Callback<JSONObject> cb) {
+        Request req = signed(rest() + "/profiles?select=risk_profile,liquidity,onboarded&limit=1");
+        if (req == null) { cb.onError("You're signed out. Please sign in again."); return; }
+        enqueueArray(req, new Callback<JSONArray>() {
+            @Override public void onSuccess(JSONArray rows) {
+                JSONObject row = rows.length() > 0 ? rows.optJSONObject(0) : null;
+                cb.onSuccess(row != null ? row : new JSONObject());
+            }
+            @Override public void onError(String message) { cb.onError(message); }
+        });
+    }
+
+    /** Upsert the current user's profile (risk appetite + available cash). */
+    public void upsertProfile(String riskProfile, double liquidity, boolean onboarded,
+                              Callback<Void> cb) {
+        Session s = sessions.load();
+        if (s == null) { cb.onError("You're signed out. Please sign in again."); return; }
+        JSONObject body = new JSONObject();
+        try {
+            body.put("user_id", s.userId);
+            body.put("risk_profile", riskProfile);
+            body.put("liquidity", liquidity);
+            body.put("onboarded", onboarded);
+        } catch (JSONException e) {
+            cb.onError("Could not build request.");
+            return;
+        }
+        Request req = new Request.Builder()
+                .url(rest() + "/profiles")
+                .header("apikey", BuildConfig.SUPABASE_ANON_KEY)
+                .header("Authorization", "Bearer " + s.accessToken)
+                .header("Prefer", "resolution=merge-duplicates,return=minimal")
+                .post(RequestBody.create(body.toString(), JSON))
+                .build();
+        client.newCall(req).enqueue(new okhttp3.Callback() {
+            @Override public void onFailure(@NonNull okhttp3.Call call, @NonNull IOException e) {
+                postError(cb, "Network error. Check your connection.");
+            }
+            @Override public void onResponse(@NonNull okhttp3.Call call, @NonNull Response response) {
+                try (Response r = response) {
+                    if (r.isSuccessful()) main.post(() -> cb.onSuccess(null));
+                    else postError(cb, "Couldn't save profile (" + r.code() + ").");
+                }
+            }
+        });
+    }
+
     /** Upsert one holding for the current user (unique on user_id + code). */
     public void upsertHolding(String code, double shares, double avgPrice, Callback<Void> cb) {
         Session s = sessions.load();

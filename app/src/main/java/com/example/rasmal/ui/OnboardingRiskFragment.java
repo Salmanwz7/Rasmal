@@ -1,10 +1,12 @@
 package com.example.rasmal.ui;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -14,12 +16,16 @@ import androidx.navigation.fragment.NavHostFragment;
 
 import com.example.rasmal.R;
 import com.example.rasmal.auth.SessionManager;
+import com.example.rasmal.data.ApiClient;
 import com.example.rasmal.databinding.FragmentOnboardingRiskBinding;
 import com.google.android.material.card.MaterialCardView;
 
 public class OnboardingRiskFragment extends Fragment {
 
     private FragmentOnboardingRiskBinding binding;
+    private ApiClient api;
+    // Balanced is pre-selected in the layout, so it's the default answer.
+    private String selectedRisk = "balanced";
 
     @Nullable
     @Override
@@ -31,18 +37,47 @@ public class OnboardingRiskFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        binding.cardConservative.setOnClickListener(v ->
-                select(binding.cardConservative, binding.radioConservative));
-        binding.cardBalanced.setOnClickListener(v ->
-                select(binding.cardBalanced, binding.radioBalanced));
-        binding.cardAggressive.setOnClickListener(v ->
-                select(binding.cardAggressive, binding.radioAggressive));
+        api = new ApiClient(requireContext());
 
-        binding.continueBtn.setOnClickListener(v -> {
-            new SessionManager(requireContext()).setOnboarded();
-            NavHostFragment.findNavController(this)
-                    .navigate(R.id.action_onboardingRisk_to_dashboard);
+        binding.cardConservative.setOnClickListener(v -> {
+            selectedRisk = "conservative";
+            select(binding.cardConservative, binding.radioConservative);
         });
+        binding.cardBalanced.setOnClickListener(v -> {
+            selectedRisk = "balanced";
+            select(binding.cardBalanced, binding.radioBalanced);
+        });
+        binding.cardAggressive.setOnClickListener(v -> {
+            selectedRisk = "aggressive";
+            select(binding.cardAggressive, binding.radioAggressive);
+        });
+
+        binding.continueBtn.setOnClickListener(v -> finishOnboarding());
+    }
+
+    /**
+     * Persists the onboarding answers (risk profile + available cash) to the
+     * user's Supabase profile, marks onboarding complete, and enters the app.
+     * The save is best-effort: we always proceed locally, and use the app
+     * context for any error toast since this fragment is torn down on navigate.
+     */
+    private void finishOnboarding() {
+        double liquidity = getArguments() != null
+                ? getArguments().getDouble(OnboardingPortfolioFragment.ARG_LIQUIDITY, 0d) : 0d;
+
+        new SessionManager(requireContext()).setOnboarded();
+
+        final Context appCtx = requireContext().getApplicationContext();
+        api.upsertProfile(selectedRisk, liquidity, true, new ApiClient.Callback<Void>() {
+            @Override public void onSuccess(Void unused) { }
+            @Override public void onError(String message) {
+                Toast.makeText(appCtx, "Saved on device; profile sync failed: " + message,
+                        Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        NavHostFragment.findNavController(this)
+                .navigate(R.id.action_onboardingRisk_to_dashboard);
     }
 
     private void select(MaterialCardView selectedCard, ImageView selectedRadio) {
