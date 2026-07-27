@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.rasmal.databinding.ItemChatAiBinding;
 import com.example.rasmal.databinding.ItemChatUserBinding;
 import com.example.rasmal.model.ChatMessage;
+import com.example.rasmal.util.MarkdownLite;
 
 import java.util.List;
 
@@ -45,7 +46,9 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         if (holder instanceof UserVH) {
             ((UserVH) holder).b.message.setText(m.text);
         } else {
-            ((AiVH) holder).b.message.setText(m.text);
+            // AI replies may still contain stray markdown even with a plain-text
+            // system prompt; render it rather than showing raw ** / # / | chars.
+            ((AiVH) holder).b.message.setText(MarkdownLite.render(m.text));
         }
     }
 

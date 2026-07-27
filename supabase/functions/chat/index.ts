@@ -48,6 +48,10 @@ Deno.serve(async (req) => {
       "friendly, and practical. Base answers on the user's holdings and the market " +
       "snapshot below; do not invent prices or figures. You may reply in the user's " +
       "language (English or Arabic). This is informational, not licensed financial advice.\n\n" +
+      "Your reply is shown as plain text in a mobile chat bubble, not rendered markdown. " +
+      "Do not use markdown syntax: no **bold**, no # headers, no | tables |, no code " +
+      "fences. Write plain sentences and short paragraphs; if you need a list, put each " +
+      "item on its own line starting with a plain dash.\n\n" +
       `User holdings: ${JSON.stringify(holdings)}\n` +
       `Market snapshot: ${JSON.stringify(market)}`,
   };
