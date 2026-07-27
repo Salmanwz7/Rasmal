@@ -47,6 +47,9 @@
         <action
             android:id="@+id/action_onboardingPortfolio_to_addStock"
             app:destination="@id/addStockFragment" />
+        <action
+            android:id="@+id/action_onboardingPortfolio_to_details"
+            app:destination="@id/addStockDetailsFragment" />
     </fragment>
 
     <fragment

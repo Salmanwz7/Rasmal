@@ -1,5 +1,6 @@
 package com.example.rasmal.ui;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -7,6 +8,7 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -68,6 +70,7 @@ public class DashboardFragment extends Fragment {
     /** Loads the user's holdings, then live quotes, and renders the real portfolio. */
     private void loadPortfolio() {
         showDemo(); // sensible defaults while the network calls are in flight
+        loadLiquidity();
         api.getHoldings(new ApiClient.Callback<JSONArray>() {
             @Override public void onSuccess(JSONArray holdings) {
                 if (binding == null) return;
@@ -88,6 +91,18 @@ public class DashboardFragment extends Fragment {
         binding.holdingsList.setAdapter(new DashboardHoldingAdapter(MockData.dashboardHoldings()));
     }
 
+    /** Fills the liquidity tile from the user's saved profile (Story 003). */
+    private void loadLiquidity() {
+        api.getProfile(new ApiClient.Callback<JSONObject>() {
+            @Override public void onSuccess(JSONObject profile) {
+                if (binding == null) return;
+                double liq = profile.optDouble("liquidity", -1);
+                if (liq >= 0) binding.liquidityValue.setText(money(liq));
+            }
+            @Override public void onError(String message) { /* keep demo */ }
+        });
+    }
+
     private void render(JSONArray holdings, JSONArray quotes) {
         Map<String, JSONObject> quoteByCode = new HashMap<>();
         for (int i = 0; i < quotes.length(); i++) {
@@ -96,7 +111,7 @@ public class DashboardFragment extends Fragment {
         }
 
         List<Holding> rows = new ArrayList<>();
-        double totalValue = 0, totalCost = 0;
+        double totalValue = 0, totalCost = 0, totalPrev = 0;
 
         for (int i = 0; i < holdings.length(); i++) {
             JSONObject h = holdings.optJSONObject(i);
@@ -108,10 +123,13 @@ public class DashboardFragment extends Fragment {
             JSONObject q = quoteByCode.get(code);
             double price = q != null ? q.optDouble("price", avg) : avg;
             double changePct = q != null ? q.optDouble("change_pct", 0) : 0;
+            double prevClose = q != null ? q.optDouble("prev_close", 0) : 0;
+            // Fall back to reconstructing yesterday's close from the day's % move.
+            if (prevClose <= 0) prevClose = changePct > -100 ? price / (1 + changePct / 100) : price;
 
-            double value = shares * price;
-            totalValue += value;
+            totalValue += shares * price;
             totalCost += shares * avg;
+            totalPrev += shares * prevClose;
 
             Stock st = MockData.stockByCode(code);
             String name = st != null ? st.name : code;
@@ -122,16 +140,45 @@ public class DashboardFragment extends Fragment {
             rows.add(new Holding(
                     name, code, badge, color,
                     code + " · " + sector,
-                    "SAR " + money(value),
-                    (changePct >= 0 ? "+" : "") + fmt2(changePct) + "%",
+                    "SAR " + money(shares * price),
+                    signedPct(changePct),
                     changePct >= 0));
         }
 
         binding.holdingsList.setAdapter(new DashboardHoldingAdapter(rows));
         binding.portfolioValue.setText("SAR " + money(totalValue));
 
-        double deltaPct = totalCost > 0 ? (totalValue - totalCost) / totalCost * 100 : 0;
-        binding.portfolioDelta.setText((deltaPct >= 0 ? "+" : "") + fmt2(deltaPct) + "%");
+        renderTodayPnl(totalValue - totalPrev, totalPrev);
+        renderTotalReturn(totalValue - totalCost, totalCost);
+    }
+
+    /** Hero pill (today's %) + adjacent SAR amount, coloured for up/down. */
+    private void renderTodayPnl(double pnl, double prevValue) {
+        boolean up = pnl >= 0;
+        double pct = prevValue > 0 ? pnl / prevValue * 100 : 0;
+
+        binding.portfolioDelta.setText(signedPct(pct));
+        binding.portfolioDelta.setBackgroundResource(
+                up ? R.drawable.bg_pill_green : R.drawable.bg_pill_red);
+        binding.portfolioDelta.setTextColor(up
+                ? ContextCompat.getColor(requireContext(), R.color.on_primary) : Color.WHITE);
+
+        binding.todayPnl.setText((up ? "+ " : "− ") + "SAR " + money(Math.abs(pnl)) + " today");
+        binding.todayPnl.setTextColor(ContextCompat.getColor(requireContext(),
+                up ? R.color.up_green : R.color.down_red));
+    }
+
+    /** Total return card: percentage since cost basis, coloured for gain/loss. */
+    private void renderTotalReturn(double gain, double cost) {
+        boolean up = gain >= 0;
+        double pct = cost > 0 ? gain / cost * 100 : 0;
+        binding.totalReturnValue.setText(signedPct(pct));
+        binding.totalReturnValue.setTextColor(ContextCompat.getColor(requireContext(),
+                up ? R.color.up_green : R.color.down_red));
+    }
+
+    private String signedPct(double v) {
+        return (v >= 0 ? "+" : "") + fmt2(v) + "%";
     }
 
     private String money(double v) {

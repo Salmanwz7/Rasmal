@@ -6,6 +6,7 @@ import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -15,14 +16,26 @@ import com.example.rasmal.model.Holding;
 import java.util.List;
 import java.util.Locale;
 
-/** Editable holdings list used in onboarding (supports removing a row). */
+/** Editable holdings list used in onboarding (tap a row to edit, ✕ to remove). */
 public class PortfolioHoldingAdapter
         extends RecyclerView.Adapter<PortfolioHoldingAdapter.VH> {
 
+    /** Lets the host fragment persist edits/removals (adapter stays UI-only). */
+    public interface Listener {
+        void onEdit(Holding holding);
+        void onRemove(Holding holding);
+    }
+
     private final List<Holding> items;
+    @Nullable private final Listener listener;
 
     public PortfolioHoldingAdapter(List<Holding> items) {
+        this(items, null);
+    }
+
+    public PortfolioHoldingAdapter(List<Holding> items, @Nullable Listener listener) {
         this.items = items;
+        this.listener = listener;
     }
 
     @NonNull
@@ -41,12 +54,20 @@ public class PortfolioHoldingAdapter
                 ContextCompat.getColor(holder.b.getRoot().getContext(), h.badgeColorRes)));
         holder.b.name.setText(String.format(Locale.US, "%s (%s)", h.name, h.code));
         holder.b.detail.setText(formatShares(h));
+
+        holder.b.getRoot().setOnClickListener(v -> {
+            int pos = holder.getBindingAdapterPosition();
+            if (pos == RecyclerView.NO_POSITION || listener == null) return;
+            listener.onEdit(items.get(pos));
+        });
+
         holder.b.remove.setOnClickListener(v -> {
             int pos = holder.getBindingAdapterPosition();
             if (pos == RecyclerView.NO_POSITION) return;
-            items.remove(pos);
+            Holding removed = items.remove(pos);
             notifyItemRemoved(pos);
             notifyItemRangeChanged(pos, items.size());
+            if (listener != null) listener.onRemove(removed);
         });
     }
 
