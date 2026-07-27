@@ -91,9 +91,9 @@ public class ApiClient {
         enqueueArray(req, cb);
     }
 
-    /** GET /rest/v1/quotes → cached market quotes (code, price, change_pct). */
+    /** GET /rest/v1/quotes → cached market quotes (code, price, change_pct, prev_close). */
     public void getQuotes(Callback<JSONArray> cb) {
-        Request req = signed(rest() + "/quotes?select=code,price,change_pct");
+        Request req = signed(rest() + "/quotes?select=code,price,change_pct,prev_close");
         if (req == null) { cb.onError("You're signed out. Please sign in again."); return; }
         enqueueArray(req, cb);
     }

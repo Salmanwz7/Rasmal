@@ -116,6 +116,7 @@
                         android:textStyle="bold" />
 
                     <TextView
+                        android:id="@+id/today_pnl"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="@dimen/space_8"
@@ -165,6 +166,7 @@
                         tools:ignore="HardcodedText" />
 
                     <TextView
+                        android:id="@+id/liquidity_value"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/space_4"
@@ -201,6 +203,7 @@
                         tools:ignore="HardcodedText" />
 
                     <TextView
+                        android:id="@+id/total_return_value"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/space_4"
