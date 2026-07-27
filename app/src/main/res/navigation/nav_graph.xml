@@ -90,6 +90,18 @@
     </fragment>
 
     <fragment
+        android:id="@+id/portfolioFragment"
+        android:name="com.example.rasmal.ui.PortfolioFragment"
+        android:label="Portfolio">
+        <action
+            android:id="@+id/action_portfolio_to_addStock"
+            app:destination="@id/addStockFragment" />
+        <action
+            android:id="@+id/action_portfolio_to_details"
+            app:destination="@id/addStockDetailsFragment" />
+    </fragment>
+
+    <fragment
         android:id="@+id/aiRecommendationFragment"
         android:name="com.example.rasmal.ui.AIRecommendationFragment"
         android:label="AI Recommendation" />

@@ -63,6 +63,10 @@ public class MainActivity extends AppCompatActivity {
                 navigateTab(R.id.aiChatFragment);
                 return true;
             }
+            if (id == R.id.nav_portfolio) {
+                navigateTab(R.id.portfolioFragment);
+                return true;
+            }
             if (id == R.id.nav_profile) {
                 showSignOutDialog();
                 return false;
@@ -171,12 +175,15 @@ public class MainActivity extends AppCompatActivity {
 
     private void updateBottomNav(BottomNavigationView nav, NavDestination destination) {
         int id = destination.getId();
-        boolean show = id == R.id.dashboardFragment || id == R.id.aiChatFragment;
+        boolean show = id == R.id.dashboardFragment || id == R.id.aiChatFragment
+                || id == R.id.portfolioFragment;
         nav.setVisibility(show ? View.VISIBLE : View.GONE);
         if (id == R.id.dashboardFragment) {
             nav.getMenu().findItem(R.id.nav_home).setChecked(true);
         } else if (id == R.id.aiChatFragment) {
             nav.getMenu().findItem(R.id.nav_chat).setChecked(true);
+        } else if (id == R.id.portfolioFragment) {
+            nav.getMenu().findItem(R.id.nav_portfolio).setChecked(true);
         }
     }
 

@@ -17,17 +17,20 @@ import com.example.rasmal.R;
 import com.example.rasmal.adapter.PortfolioHoldingAdapter;
 import com.example.rasmal.data.ApiClient;
 import com.example.rasmal.data.OnboardingHoldings;
-import com.example.rasmal.databinding.FragmentOnboardingPortfolioBinding;
+import com.example.rasmal.databinding.FragmentPortfolioBinding;
 import com.example.rasmal.model.Holding;
+import com.example.rasmal.model.Stock;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
 import java.util.List;
 
-public class OnboardingPortfolioFragment extends Fragment {
+/** Lets a signed-in user add, edit, and remove holdings any time (not just onboarding). */
+public class PortfolioFragment extends Fragment {
 
-    /** Bundle key carrying the entered available cash to the risk screen. */
-    static final String ARG_LIQUIDITY = "liquidity";
-
-    private FragmentOnboardingPortfolioBinding binding;
+    private FragmentPortfolioBinding binding;
     private List<Holding> holdings;
     private PortfolioHoldingAdapter adapter;
     private ApiClient api;
@@ -36,7 +39,7 @@ public class OnboardingPortfolioFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        binding = FragmentOnboardingPortfolioBinding.inflate(inflater, container, false);
+        binding = FragmentPortfolioBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
 
@@ -53,17 +56,55 @@ public class OnboardingPortfolioFragment extends Fragment {
 
         binding.addStock.setOnClickListener(v -> {
             Bundle args = new Bundle();
-            args.putInt(AddStockFragment.ARG_RETURN_TO, R.id.onboardingPortfolioFragment);
+            args.putInt(AddStockFragment.ARG_RETURN_TO, R.id.portfolioFragment);
             NavHostFragment.findNavController(this)
-                    .navigate(R.id.action_onboardingPortfolio_to_addStock, args);
+                    .navigate(R.id.action_portfolio_to_addStock, args);
         });
 
-        binding.continueBtn.setOnClickListener(v -> {
-            Bundle args = new Bundle();
-            args.putDouble(ARG_LIQUIDITY, parseLiquidity());
-            NavHostFragment.findNavController(this)
-                    .navigate(R.id.action_onboardingPortfolio_to_risk, args);
+        loadHoldings();
+    }
+
+    /** Loads the company catalog (for names/badges), then the user's real holdings. */
+    private void loadHoldings() {
+        api.getCompanyCatalog(new ApiClient.Callback<List<Stock>>() {
+            @Override public void onSuccess(List<Stock> stocks) { fetchHoldings(); }
+            @Override public void onError(String message) { fetchHoldings(); }
         });
+    }
+
+    private void fetchHoldings() {
+        api.getHoldings(new ApiClient.Callback<JSONArray>() {
+            @Override public void onSuccess(JSONArray rows) {
+                if (binding == null) return;
+                List<Holding> real = new ArrayList<>();
+                for (int i = 0; i < rows.length(); i++) {
+                    JSONObject h = rows.optJSONObject(i);
+                    if (h == null) continue;
+                    String code = h.optString("code");
+                    int shares = (int) h.optDouble("shares", 0);
+                    double avg = h.optDouble("avg_price", 0);
+                    Stock st = ApiClient.companyByCode(code);
+                    String name = st != null ? st.name : code;
+                    String badge = st != null ? st.badge : code;
+                    int color = st != null ? st.badgeColorRes : R.color.badge_snb;
+                    real.add(new Holding(name, code, badge, color, shares, avg));
+                }
+                OnboardingHoldings.setAll(real);
+                adapter.notifyDataSetChanged();
+                showList(!real.isEmpty());
+                if (real.isEmpty()) binding.empty.setText(R.string.no_holdings_yet);
+            }
+            @Override public void onError(String message) {
+                if (binding == null) return;
+                binding.empty.setText(getString(R.string.dashboard_load_error));
+                showList(false);
+            }
+        });
+    }
+
+    private void showList(boolean hasHoldings) {
+        binding.holdingsList.setVisibility(hasHoldings ? View.VISIBLE : View.GONE);
+        binding.empty.setVisibility(hasHoldings ? View.GONE : View.VISIBLE);
     }
 
     /** Opens the details screen pre-filled with this holding's shares + price. */
@@ -72,9 +113,9 @@ public class OnboardingPortfolioFragment extends Fragment {
         args.putString(AddStockFragment.ARG_STOCK_CODE, h.code);
         args.putInt(AddStockDetailsFragment.ARG_EDIT_SHARES, h.shares);
         args.putDouble(AddStockDetailsFragment.ARG_EDIT_PRICE, h.buyPrice);
-        args.putInt(AddStockDetailsFragment.ARG_RETURN_TO, R.id.onboardingPortfolioFragment);
+        args.putInt(AddStockDetailsFragment.ARG_RETURN_TO, R.id.portfolioFragment);
         NavHostFragment.findNavController(this)
-                .navigate(R.id.action_onboardingPortfolio_to_details, args);
+                .navigate(R.id.action_portfolio_to_details, args);
     }
 
     /** The row was already dropped locally; delete it from Supabase (best-effort). */
@@ -87,16 +128,6 @@ public class OnboardingPortfolioFragment extends Fragment {
                         Toast.LENGTH_SHORT).show();
             }
         });
-    }
-
-    /** Reads the cash field, tolerating grouping commas and a stray "SAR"/spaces. */
-    private double parseLiquidity() {
-        String raw = binding.liquidity.getText().toString().replaceAll("[^0-9.]", "");
-        try {
-            return raw.isEmpty() ? 0d : Double.parseDouble(raw);
-        } catch (NumberFormatException e) {
-            return 0d;
-        }
     }
 
     @Override

@@ -29,6 +29,8 @@ public class AddStockDetailsFragment extends Fragment {
     /** When present (shares &gt; 0) the screen edits an existing holding instead of adding one. */
     static final String ARG_EDIT_SHARES = "edit_shares";
     static final String ARG_EDIT_PRICE = "edit_price";
+    /** Bundle key carrying which "manage holdings" screen to pop back to on save. */
+    static final String ARG_RETURN_TO = "return_to";
 
     private FragmentAddStockDetailsBinding binding;
     private Stock stock;
@@ -108,9 +110,12 @@ public class AddStockDetailsFragment extends Fragment {
             }
         });
 
-        // Pop straight back to the portfolio screen (past the search screen).
-        NavHostFragment.findNavController(this)
-                .popBackStack(R.id.onboardingPortfolioFragment, false);
+        // Pop straight back to whichever "manage holdings" screen sent us here
+        // (past the search screen, if that's how we arrived).
+        int returnTo = getArguments() != null
+                ? getArguments().getInt(ARG_RETURN_TO, R.id.onboardingPortfolioFragment)
+                : R.id.onboardingPortfolioFragment;
+        NavHostFragment.findNavController(this).popBackStack(returnTo, false);
     }
 
     /** Replace the in-memory holding with the same code if present, otherwise append. */

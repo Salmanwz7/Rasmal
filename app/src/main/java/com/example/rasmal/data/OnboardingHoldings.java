@@ -6,9 +6,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Holdings a user is staging during onboarding, shared between the portfolio
- * review screen and the "add a stock" flow. Starts empty; each addition is
- * also persisted to Supabase separately via {@link ApiClient#upsertHolding}.
+ * Holdings staged in-memory for the two "manage holdings" screens (onboarding's
+ * portfolio review and the post-sign-in Portfolio tab), shared with the
+ * "add a stock" flow. Each addition/edit is also persisted to Supabase
+ * separately via {@link ApiClient#upsertHolding}.
  */
 public final class OnboardingHoldings {
 
@@ -18,5 +19,11 @@ public final class OnboardingHoldings {
 
     public static List<Holding> list() {
         return holdings;
+    }
+
+    /** Replaces the contents in place (same list instance) so bound adapters keep working. */
+    public static void setAll(List<Holding> newHoldings) {
+        holdings.clear();
+        holdings.addAll(newHoldings);
     }
 }

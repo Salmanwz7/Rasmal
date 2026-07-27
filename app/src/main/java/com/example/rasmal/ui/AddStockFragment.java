@@ -26,6 +26,8 @@ public class AddStockFragment extends Fragment {
 
     /** Bundle key carrying the selected stock's Tadawul code to the details screen. */
     static final String ARG_STOCK_CODE = "stock_code";
+    /** Bundle key carrying which "manage holdings" screen to pop back to. */
+    static final String ARG_RETURN_TO = "return_to";
 
     private FragmentAddStockBinding binding;
     private StockAdapter adapter;
@@ -42,9 +44,13 @@ public class AddStockFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         api = new ApiClient(requireContext());
+        int returnTo = getArguments() != null
+                ? getArguments().getInt(ARG_RETURN_TO, R.id.onboardingPortfolioFragment)
+                : R.id.onboardingPortfolioFragment;
         adapter = new StockAdapter(new ArrayList<>(), stock -> {
             Bundle args = new Bundle();
             args.putString(ARG_STOCK_CODE, stock.code);
+            args.putInt(AddStockDetailsFragment.ARG_RETURN_TO, returnTo);
             NavHostFragment.findNavController(this)
                     .navigate(R.id.action_addStock_to_details, args);
         });
