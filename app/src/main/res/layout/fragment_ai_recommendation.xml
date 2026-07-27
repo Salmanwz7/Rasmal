@@ -193,7 +193,7 @@
                 android:id="@+id/bought_btn"
                 style="@style/Widget.Rasmal.Button.Primary"
                 android:layout_marginTop="@dimen/space_12"
-                android:text="@string/i_bought_this" />
+                android:text="@string/record_trade" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/later_btn"

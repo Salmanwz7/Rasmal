@@ -76,7 +76,18 @@
     <string name="disclaimer">AI analysis, not financial advice. Markets carry risk, invest responsibly.</string>
     <string name="did_you_execute">Did you execute this trade?</string>
     <string name="i_bought_this">I bought this</string>
+    <string name="record_trade">I executed this trade</string>
     <string name="later">Later</string>
+
+    <!-- Trade confirmation dialog (Story 009) -->
+    <string name="confirm_trade_title">Confirm trade</string>
+    <string name="buy_or_sell">Did you buy or sell?</string>
+    <string name="bought">Bought</string>
+    <string name="sold">Sold</string>
+    <string name="trade_quantity">Quantity</string>
+    <string name="trade_price">Price (SAR)</string>
+    <string name="confirm">Confirm</string>
+    <string name="cancel">Cancel</string>
 
     <!-- AI Chat -->
     <string name="chip_full_analysis">Full analysis</string>

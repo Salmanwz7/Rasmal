@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Trade confirmation: buy/sold choice + actual quantity and price (Story 009). -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingHorizontal="@dimen/space_24"
+    android:paddingTop="@dimen/space_16"
+    android:paddingBottom="@dimen/space_8">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/buy_or_sell"
+        android:textAppearance="@style/Text.Rasmal.Label" />
+
+    <RadioGroup
+        android:id="@+id/side_group"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/space_8"
+        android:orientation="horizontal">
+
+        <RadioButton
+            android:id="@+id/side_buy"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="@string/bought"
+            android:textColor="@color/text_primary"
+            android:textSize="15sp" />
+
+        <RadioButton
+            android:id="@+id/side_sell"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/space_24"
+            android:text="@string/sold"
+            android:textColor="@color/text_primary"
+            android:textSize="15sp" />
+    </RadioGroup>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/space_16"
+        android:text="@string/trade_quantity"
+        android:textAppearance="@style/Text.Rasmal.Label" />
+
+    <EditText
+        android:id="@+id/quantity"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:layout_marginTop="@dimen/space_8"
+        android:autofillHints="none"
+        android:background="@drawable/bg_input"
+        android:hint="@string/shares_hint"
+        android:inputType="number"
+        android:maxLines="1"
+        android:paddingHorizontal="@dimen/space_16"
+        android:textColor="@color/text_primary"
+        android:textColorHint="@color/text_tertiary"
+        android:textSize="16sp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/space_16"
+        android:text="@string/trade_price"
+        android:textAppearance="@style/Text.Rasmal.Label" />
+
+    <EditText
+        android:id="@+id/price"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:layout_marginTop="@dimen/space_8"
+        android:autofillHints="none"
+        android:background="@drawable/bg_input"
+        android:hint="@string/avg_price_hint"
+        android:inputType="numberDecimal"
+        android:maxLines="1"
+        android:paddingHorizontal="@dimen/space_16"
+        android:textColor="@color/text_primary"
+        android:textColorHint="@color/text_tertiary"
+        android:textSize="16sp" />
+</LinearLayout>

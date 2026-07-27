@@ -180,6 +180,42 @@ public class ApiClient {
         });
     }
 
+    /** Appends one executed trade to the user's ledger (Story 009). */
+    public void recordTransaction(String code, String side, double shares, double price,
+                                  Callback<Void> cb) {
+        Session s = sessions.load();
+        if (s == null) { cb.onError("You're signed out. Please sign in again."); return; }
+        JSONObject body = new JSONObject();
+        try {
+            body.put("user_id", s.userId);
+            body.put("code", code);
+            body.put("side", side);
+            body.put("shares", shares);
+            body.put("price", price);
+        } catch (JSONException e) {
+            cb.onError("Could not build request.");
+            return;
+        }
+        Request req = new Request.Builder()
+                .url(rest() + "/transactions")
+                .header("apikey", BuildConfig.SUPABASE_ANON_KEY)
+                .header("Authorization", "Bearer " + s.accessToken)
+                .header("Prefer", "return=minimal")
+                .post(RequestBody.create(body.toString(), JSON))
+                .build();
+        client.newCall(req).enqueue(new okhttp3.Callback() {
+            @Override public void onFailure(@NonNull okhttp3.Call call, @NonNull IOException e) {
+                postError(cb, "Network error. Check your connection.");
+            }
+            @Override public void onResponse(@NonNull okhttp3.Call call, @NonNull Response response) {
+                try (Response r = response) {
+                    if (r.isSuccessful()) main.post(() -> cb.onSuccess(null));
+                    else postError(cb, "Couldn't record the trade (" + r.code() + ").");
+                }
+            }
+        });
+    }
+
     /** Deletes the current user's holding for the given code (RLS scopes it to them). */
     public void deleteHolding(String code, Callback<Void> cb) {
         Session s = sessions.load();
