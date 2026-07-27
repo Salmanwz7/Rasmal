@@ -17,7 +17,6 @@ import androidx.navigation.fragment.NavHostFragment;
 
 import com.example.rasmal.R;
 import com.example.rasmal.data.ApiClient;
-import com.example.rasmal.data.MockData;
 import com.example.rasmal.databinding.FragmentAiRecommendationBinding;
 import com.example.rasmal.model.Recommendation;
 import com.example.rasmal.model.Stock;
@@ -28,6 +27,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.text.NumberFormat;
+import java.util.List;
 import java.util.Locale;
 
 /** Shows the top AI recommendation from the backend scoring engine. */
@@ -71,7 +71,10 @@ public class AIRecommendationFragment extends Fragment {
         binding.boughtBtn.setOnClickListener(v -> showTradeDialog());
 
         showLoading();
-        loadProfileThenRecommend();
+        api.getCompanyCatalog(new ApiClient.Callback<List<Stock>>() {
+            @Override public void onSuccess(List<Stock> stocks) { loadProfileThenRecommend(); }
+            @Override public void onError(String message) { loadProfileThenRecommend(); }
+        });
     }
 
     /** Load the saved risk profile + liquidity, then request a recommendation. */
@@ -94,6 +97,8 @@ public class AIRecommendationFragment extends Fragment {
 
     private void showLoading() {
         binding.confidencePill.setText("Analyzing…");
+        binding.companyName.setText("");
+        binding.companySector.setText("");
         binding.statAmount.value.setText("…");
         binding.statRange.value.setText("…");
         binding.statTarget.value.setText("…");
@@ -115,13 +120,15 @@ public class AIRecommendationFragment extends Fragment {
             @Override public void onError(String message) {
                 if (binding == null) return;
                 Snackbar.make(binding.getRoot(), message, Snackbar.LENGTH_LONG).show();
-                binding.confidencePill.setText(R.string.buy_confidence);
+                binding.confidencePill.setText(R.string.recommendation_unavailable_pill);
+                binding.companyName.setText(R.string.recommendation_unavailable);
+                binding.companySector.setText("");
             }
         });
     }
 
     private void bind(Recommendation r) {
-        Stock st = MockData.stockByCode(r.code);
+        Stock st = ApiClient.companyByCode(r.code);
         binding.companyName.setText(st != null ? st.name : r.code);
         binding.companySector.setText(st != null ? st.sector : "");
         binding.confidencePill.setText(String.format(Locale.US, "BUY · %d%% confidence", r.confidence));

@@ -15,8 +15,12 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.rasmal.R;
 import com.example.rasmal.adapter.StockAdapter;
-import com.example.rasmal.data.MockData;
+import com.example.rasmal.data.ApiClient;
 import com.example.rasmal.databinding.FragmentAddStockBinding;
+import com.example.rasmal.model.Stock;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class AddStockFragment extends Fragment {
 
@@ -25,6 +29,7 @@ public class AddStockFragment extends Fragment {
 
     private FragmentAddStockBinding binding;
     private StockAdapter adapter;
+    private ApiClient api;
 
     @Nullable
     @Override
@@ -36,7 +41,8 @@ public class AddStockFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        adapter = new StockAdapter(MockData.availableStocks(), stock -> {
+        api = new ApiClient(requireContext());
+        adapter = new StockAdapter(new ArrayList<>(), stock -> {
             Bundle args = new Bundle();
             args.putString(ARG_STOCK_CODE, stock.code);
             NavHostFragment.findNavController(this)
@@ -53,7 +59,25 @@ public class AddStockFragment extends Fragment {
             @Override public void onTextChanged(CharSequence s, int a, int b, int c) {}
             @Override public void afterTextChanged(Editable s) {
                 int count = adapter.filter(s.toString());
+                binding.empty.setText(R.string.no_stocks_found);
                 binding.empty.setVisibility(count == 0 ? View.VISIBLE : View.GONE);
+            }
+        });
+
+        loadCatalog();
+    }
+
+    private void loadCatalog() {
+        api.getCompanyCatalog(new ApiClient.Callback<List<Stock>>() {
+            @Override public void onSuccess(List<Stock> stocks) {
+                if (binding == null) return;
+                adapter.setAll(stocks);
+                binding.empty.setVisibility(stocks.isEmpty() ? View.VISIBLE : View.GONE);
+            }
+            @Override public void onError(String message) {
+                if (binding == null) return;
+                binding.empty.setText(getString(R.string.catalog_load_error, message));
+                binding.empty.setVisibility(View.VISIBLE);
             }
         });
     }

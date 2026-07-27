@@ -1,8 +1,9 @@
 package com.example.rasmal.model;
 
 /**
- * A searchable stock from the (mock) Tadawul catalog. Selecting one during
- * onboarding produces a {@link Holding} once the user enters shares + avg price.
+ * A searchable stock from the Tadawul catalog (fetched from Supabase). Selecting
+ * one during onboarding produces a {@link Holding} once the user enters shares +
+ * avg price.
  */
 public class Stock {
 

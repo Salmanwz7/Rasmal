@@ -34,22 +34,37 @@ const num = (v: unknown): number | null => {
   return Number.isFinite(n) ? n : null;
 };
 
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+// SAHMK's free tier has an undocumented short burst limit (observed: ~5 quick
+// requests succeed, the next ones 429 even seconds later) well under the
+// documented 100/day cap. Retry a 429 with backoff before giving up.
 async function sahmkGet(path: string): Promise<any | null> {
   const key = Deno.env.get("SAHMK_KEY");
   if (!key) throw new Error("SAHMK_KEY secret is not set");
-  try {
-    const res = await fetch(`${SAHMK_BASE}${path}`, {
-      headers: { "X-API-Key": key, "Accept": "application/json" },
-    });
-    if (!res.ok) {
-      console.error(`SAHMK ${path} -> ${res.status}`);
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const res = await fetch(`${SAHMK_BASE}${path}`, {
+        headers: { "X-API-Key": key, "Accept": "application/json" },
+      });
+      if (res.status === 429) {
+        await res.body?.cancel();
+        console.error(`SAHMK ${path} -> 429 (attempt ${attempt + 1})`);
+        await sleep(1000 * (attempt + 1));
+        continue;
+      }
+      if (!res.ok) {
+        console.error(`SAHMK ${path} -> ${res.status}`);
+        return null;
+      }
+      return await res.json();
+    } catch (e) {
+      console.error(`SAHMK ${path} fetch failed:`, e);
       return null;
     }
-    return await res.json();
-  } catch (e) {
-    console.error(`SAHMK ${path} fetch failed:`, e);
-    return null;
   }
+  console.error(`SAHMK ${path} -> gave up after 429 retries`);
+  return null;
 }
 
 /** Fetch a delayed/real-time quote for one Tadawul code. Fields are top-level. */
@@ -155,12 +170,14 @@ export interface ChatMessage {
 }
 
 // Free models rotate their upstream rate-limits, so we try a chain and fall
-// through on 429. All verified free & Arabic-capable (2026). Override the primary
-// with the OPENROUTER_MODEL secret; it is tried first, then these.
+// through on 429. All live-tested (2026) against an Arabic Tadawul recommendation
+// prompt and spread across 3 providers so one provider's rate limit doesn't take
+// out the whole chain. Override the primary with the OPENROUTER_MODEL secret; it
+// is tried first, then these.
 const FREE_MODEL_CHAIN = [
+  "nvidia/nemotron-3-ultra-550b-a55b:free",
   "nvidia/nemotron-3-super-120b-a12b:free",
-  "meta-llama/llama-3.3-70b-instruct:free",
-  "qwen/qwen3-next-80b-a3b-instruct:free",
+  "google/gemma-4-26b-a4b-it:free",
   "openai/gpt-oss-20b:free",
 ];
 

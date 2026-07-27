@@ -22,18 +22,27 @@ public class StockAdapter extends RecyclerView.Adapter<StockAdapter.VH> {
         void onStockClick(Stock stock);
     }
 
-    private final List<Stock> all;
+    private final List<Stock> all = new ArrayList<>();
     private final List<Stock> shown;
     private final OnStockClick listener;
+    private String lastQuery = "";
 
     public StockAdapter(List<Stock> all, OnStockClick listener) {
-        this.all = all;
+        this.all.addAll(all);
         this.shown = new ArrayList<>(all);
         this.listener = listener;
     }
 
+    /** Replaces the full catalog (e.g. once it finishes loading) and re-applies the last filter. */
+    public void setAll(List<Stock> newAll) {
+        all.clear();
+        all.addAll(newAll);
+        filter(lastQuery);
+    }
+
     /** Filters by name or code; returns the number of visible rows. */
     public int filter(String query) {
+        lastQuery = query == null ? "" : query;
         shown.clear();
         String q = query == null ? "" : query.trim().toLowerCase(Locale.US);
         if (q.isEmpty()) {

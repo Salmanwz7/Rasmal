@@ -36,15 +36,6 @@
                     android:textColor="@color/text_primary"
                     android:textSize="20sp"
                     android:textStyle="bold" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:text="@string/tasi"
-                    android:textColor="@color/up_green"
-                    android:textSize="13sp"
-                    android:textStyle="bold" />
             </LinearLayout>
 
             <FrameLayout
@@ -120,16 +111,10 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="@dimen/space_8"
-                        android:text="@string/portfolio_today"
                         android:textColor="@color/up_green"
-                        android:textSize="13sp" />
+                        android:textSize="13sp"
+                        tools:text="+ SAR 3,120 today" />
                 </LinearLayout>
-
-                <com.example.rasmal.view.LineChartView
-                    android:id="@+id/chart"
-                    android:layout_width="match_parent"
-                    android:layout_height="120dp"
-                    android:layout_marginTop="@dimen/space_16" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
@@ -170,7 +155,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/space_4"
-                        android:text="100,000"
+                        android:text="0"
                         android:textColor="@color/text_primary"
                         android:textSize="20sp"
                         android:textStyle="bold"
@@ -207,10 +192,11 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/space_4"
-                        android:text="@string/total_return_placeholder"
+                        android:text="0.00%"
                         android:textColor="@color/up_green"
                         android:textSize="20sp"
-                        android:textStyle="bold" />
+                        android:textStyle="bold"
+                        tools:ignore="HardcodedText" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
@@ -248,7 +234,7 @@
                     android:background="@drawable/bg_pill_green"
                     android:paddingHorizontal="@dimen/space_12"
                     android:paddingVertical="@dimen/space_4"
-                    android:text="87%"
+                    android:text="AI"
                     android:textColor="@color/on_primary"
                     android:textSize="13sp"
                     android:textStyle="bold"
@@ -307,5 +293,17 @@
             android:nestedScrollingEnabled="false"
             tools:itemCount="3"
             tools:listitem="@layout/item_holding" />
+
+        <TextView
+            android:id="@+id/empty_holdings"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_24"
+            android:gravity="center"
+            android:textColor="@color/text_tertiary"
+            android:textSize="15sp"
+            android:visibility="gone"
+            tools:text="No holdings yet"
+            tools:visibility="visible" />
     </LinearLayout>
 </ScrollView>

@@ -54,24 +54,23 @@
     <string name="risk_aggressive_desc">Maximize growth and accept higher volatility.</string>
 
     <!-- Dashboard -->
-    <string name="greeting">Salam, Salman</string>
-    <string name="tasi">TASI 12,480 +0.6%</string>
+    <string name="greeting">Salam!</string>
     <string name="total_portfolio_value">Total portfolio value</string>
-    <string name="portfolio_value">SAR 148,230.50</string>
-    <string name="portfolio_delta">+2.15%</string>
-    <string name="portfolio_today">+ SAR 3,120 today</string>
+    <string name="portfolio_value">SAR 0</string>
+    <string name="portfolio_delta">0.00%</string>
     <string name="ai_recommendation">✨ AI Recommendation</string>
-    <string name="ai_rec_text">Buy Elm (7203), range 990–1,020, target 1,200</string>
-    <string name="ai_rec_subtitle">Strong Q1 results and expanding digital-transformation pipeline.</string>
+    <string name="ai_rec_text">Get today\'s AI-powered stock pick</string>
+    <string name="ai_rec_subtitle">Personalized to your risk profile and real Tadawul data.</string>
     <string name="your_holdings">Your holdings</string>
     <string name="see_all">See all</string>
-    <string name="total_return_placeholder">+18.4%</string>
+    <string name="no_holdings_yet">No holdings yet — add a stock to get started.</string>
+    <string name="dashboard_load_error">Couldn\'t load your portfolio. Check your connection.</string>
+    <string name="catalog_load_error">Couldn\'t load stocks: %1$s</string>
 
     <!-- AI Recommendation -->
     <string name="ai_recommendation_title">AI Recommendation</string>
-    <string name="buy_confidence">BUY · 87% CONFIDENCE</string>
-    <string name="elm_company">Elm Company (7203)</string>
-    <string name="elm_sector">Technology · نقية Shariah compliant</string>
+    <string name="recommendation_unavailable">No recommendation available</string>
+    <string name="recommendation_unavailable_pill">UNAVAILABLE</string>
     <string name="why_ai">Why the AI recommends this</string>
     <string name="disclaimer">AI analysis, not financial advice. Markets carry risk, invest responsibly.</string>
     <string name="did_you_execute">Did you execute this trade?</string>

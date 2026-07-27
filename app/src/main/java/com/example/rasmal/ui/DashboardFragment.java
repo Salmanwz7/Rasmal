@@ -18,7 +18,6 @@ import com.example.rasmal.adapter.DashboardHoldingAdapter;
 import com.example.rasmal.auth.Session;
 import com.example.rasmal.auth.SessionManager;
 import com.example.rasmal.data.ApiClient;
-import com.example.rasmal.data.MockData;
 import com.example.rasmal.databinding.FragmentDashboardBinding;
 import com.example.rasmal.model.Holding;
 import com.example.rasmal.model.Stock;
@@ -49,7 +48,6 @@ public class DashboardFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         api = new ApiClient(requireContext());
-        binding.chart.setPoints(MockData.CHART_POINTS);
         binding.holdingsList.setLayoutManager(new LinearLayoutManager(requireContext()));
 
         binding.aiRecCard.setOnClickListener(v ->
@@ -67,28 +65,46 @@ public class DashboardFragment extends Fragment {
         if (name != null) binding.greeting.setText("Salam, " + name);
     }
 
-    /** Loads the user's holdings, then live quotes, and renders the real portfolio. */
+    /** Loads the company catalog, the user's saved liquidity, then holdings + live quotes. */
     private void loadPortfolio() {
-        showDemo(); // sensible defaults while the network calls are in flight
         loadLiquidity();
+        api.getCompanyCatalog(new ApiClient.Callback<List<Stock>>() {
+            @Override public void onSuccess(List<Stock> stocks) { loadHoldings(); }
+            @Override public void onError(String message) { loadHoldings(); }
+        });
+    }
+
+    private void loadHoldings() {
         api.getHoldings(new ApiClient.Callback<JSONArray>() {
             @Override public void onSuccess(JSONArray holdings) {
                 if (binding == null) return;
-                if (holdings.length() == 0) return; // keep demo; user has no holdings yet
+                if (holdings.length() == 0) { showEmpty(R.string.no_holdings_yet); return; }
                 api.getQuotes(new ApiClient.Callback<JSONArray>() {
                     @Override public void onSuccess(JSONArray quotes) {
                         if (binding == null) return;
                         render(holdings, quotes);
                     }
-                    @Override public void onError(String message) { /* keep demo */ }
+                    @Override public void onError(String message) {
+                        if (binding == null) return;
+                        showEmpty(R.string.dashboard_load_error);
+                    }
                 });
             }
-            @Override public void onError(String message) { /* keep demo */ }
+            @Override public void onError(String message) {
+                if (binding == null) return;
+                showEmpty(R.string.dashboard_load_error);
+            }
         });
     }
 
-    private void showDemo() {
-        binding.holdingsList.setAdapter(new DashboardHoldingAdapter(MockData.dashboardHoldings()));
+    private void showEmpty(int messageRes) {
+        binding.holdingsList.setVisibility(View.GONE);
+        binding.emptyHoldings.setText(messageRes);
+        binding.emptyHoldings.setVisibility(View.VISIBLE);
+        binding.portfolioValue.setText("SAR 0");
+        binding.portfolioDelta.setText("0.00%");
+        binding.todayPnl.setText("");
+        binding.totalReturnValue.setText("0.00%");
     }
 
     /** Fills the liquidity tile from the user's saved profile (Story 003). */
@@ -99,7 +115,7 @@ public class DashboardFragment extends Fragment {
                 double liq = profile.optDouble("liquidity", -1);
                 if (liq >= 0) binding.liquidityValue.setText(money(liq));
             }
-            @Override public void onError(String message) { /* keep demo */ }
+            @Override public void onError(String message) { /* keep last-known value */ }
         });
     }
 
@@ -131,7 +147,7 @@ public class DashboardFragment extends Fragment {
             totalCost += shares * avg;
             totalPrev += shares * prevClose;
 
-            Stock st = MockData.stockByCode(code);
+            Stock st = ApiClient.companyByCode(code);
             String name = st != null ? st.name : code;
             String sector = st != null ? st.sector : "";
             int color = st != null ? st.badgeColorRes : R.color.badge_snb;
@@ -145,6 +161,8 @@ public class DashboardFragment extends Fragment {
                     changePct >= 0));
         }
 
+        binding.emptyHoldings.setVisibility(View.GONE);
+        binding.holdingsList.setVisibility(View.VISIBLE);
         binding.holdingsList.setAdapter(new DashboardHoldingAdapter(rows));
         binding.portfolioValue.setText("SAR " + money(totalValue));
 

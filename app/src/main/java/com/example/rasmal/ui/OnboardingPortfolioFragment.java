@@ -16,7 +16,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import com.example.rasmal.R;
 import com.example.rasmal.adapter.PortfolioHoldingAdapter;
 import com.example.rasmal.data.ApiClient;
-import com.example.rasmal.data.MockData;
+import com.example.rasmal.data.OnboardingHoldings;
 import com.example.rasmal.databinding.FragmentOnboardingPortfolioBinding;
 import com.example.rasmal.model.Holding;
 
@@ -43,7 +43,7 @@ public class OnboardingPortfolioFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         api = new ApiClient(requireContext());
-        holdings = MockData.onboardingHoldings();
+        holdings = OnboardingHoldings.list();
         adapter = new PortfolioHoldingAdapter(holdings, new PortfolioHoldingAdapter.Listener() {
             @Override public void onEdit(Holding h) { editHolding(h); }
             @Override public void onRemove(Holding h) { removeHolding(h); }

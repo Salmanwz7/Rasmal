@@ -11,3 +11,6 @@ local.properties
 
 # IDE / tooling — per-developer, not shared
 .claude/
+
+# Supabase CLI local cache
+supabase/.temp/

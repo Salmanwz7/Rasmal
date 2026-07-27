@@ -7,14 +7,20 @@ import android.os.Looper;
 import androidx.annotation.NonNull;
 
 import com.example.rasmal.BuildConfig;
+import com.example.rasmal.R;
 import com.example.rasmal.auth.Session;
 import com.example.rasmal.auth.SessionManager;
+import com.example.rasmal.model.Stock;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -111,6 +117,38 @@ public class ApiClient {
         });
     }
 
+    /** GET /rest/v1/companies → the reference catalog (code, name, badge, sector). */
+    public void getCompanies(Callback<JSONArray> cb) {
+        Request req = signed(rest() + "/companies?select=code,name,badge,sector&is_active=eq.true");
+        if (req == null) { cb.onError("You're signed out. Please sign in again."); return; }
+        enqueueArray(req, cb);
+    }
+
+    // Cached for the app session: the company list rarely changes and every
+    // screen that needs a name/sector/badge for a code shares this lookup.
+    private static volatile List<Stock> companyCatalog;
+
+    /** Company catalog (name/badge/sector/last price), fetched once and cached. */
+    public void getCompanyCatalog(Callback<List<Stock>> cb) {
+        List<Stock> cached = companyCatalog;
+        if (cached != null) { cb.onSuccess(cached); return; }
+        getCompanies(new Callback<JSONArray>() {
+            @Override public void onSuccess(JSONArray companies) {
+                getQuotes(new Callback<JSONArray>() {
+                    @Override public void onSuccess(JSONArray quotes) {
+                        companyCatalog = mergeCatalog(companies, quotes);
+                        cb.onSuccess(companyCatalog);
+                    }
+                    @Override public void onError(String message) {
+                        companyCatalog = mergeCatalog(companies, new JSONArray());
+                        cb.onSuccess(companyCatalog);
+                    }
+                });
+            }
+            @Override public void onError(String message) { cb.onError(message); }
+        });
+    }
+
     /** Upsert the current user's profile (risk appetite + available cash). */
     public void upsertProfile(String riskProfile, double liquidity, boolean onboarded,
                               Callback<Void> cb) {
@@ -144,6 +182,53 @@ public class ApiClient {
                 }
             }
         });
+    }
+
+    /** Synchronous lookup into whatever catalog is currently cached, or null. */
+    public static Stock companyByCode(String code) {
+        List<Stock> cached = companyCatalog;
+        if (cached == null || code == null) return null;
+        for (Stock s : cached) if (s.code.equals(code)) return s;
+        return null;
+    }
+
+    private static List<Stock> mergeCatalog(JSONArray companies, JSONArray quotes) {
+        Map<String, Double> priceByCode = new HashMap<>();
+        for (int i = 0; i < quotes.length(); i++) {
+            JSONObject q = quotes.optJSONObject(i);
+            if (q != null) priceByCode.put(q.optString("code"), q.optDouble("price", 0));
+        }
+        List<Stock> out = new ArrayList<>();
+        for (int i = 0; i < companies.length(); i++) {
+            JSONObject c = companies.optJSONObject(i);
+            if (c == null) continue;
+            String code = c.optString("code");
+            Double price = priceByCode.get(code);
+            out.add(new Stock(
+                    c.optString("name", code),
+                    code,
+                    c.optString("badge", code),
+                    badgeColorFor(code),
+                    c.optString("sector", ""),
+                    price != null ? price : 0d));
+        }
+        return out;
+    }
+
+    // No color comes from the backend, so tickers keep the same accent colors
+    // the app has always used for these 8 Tadawul codes.
+    private static int badgeColorFor(String code) {
+        switch (code) {
+            case "2222": return R.color.badge_arc;
+            case "1120": return R.color.badge_rjhi;
+            case "7010": return R.color.badge_stc;
+            case "2010": return R.color.badge_sabic;
+            case "1180": return R.color.badge_snb;
+            case "1211": return R.color.badge_maaden;
+            case "2082": return R.color.badge_acwa;
+            case "7203": return R.color.badge_elm;
+            default: return R.color.badge_snb;
+        }
     }
 
     /** Upsert one holding for the current user (unique on user_id + code). */

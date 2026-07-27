@@ -6,7 +6,7 @@
 //
 // Protected by a shared CRON_SECRET header (set the same value in the cron job).
 import { serviceClient, json } from "../_shared/supabase.ts";
-import { fetchQuote, fetchFundamentals, fetchNews } from "../_shared/providers.ts";
+import { fetchQuote, fetchNews } from "../_shared/providers.ts";
 
 Deno.serve(async (req) => {
   if (req.headers.get("x-cron-secret") !== Deno.env.get("CRON_SECRET")) {
@@ -21,9 +21,9 @@ Deno.serve(async (req) => {
   if (error) return json({ error: error.message }, 500);
 
   const codes = (companies ?? []).map((c) => c.code as string);
-  const result = { quotes: 0, fundamentals: 0, news: 0, errors: [] as string[] };
+  const result = { quotes: 0, news: 0, errors: [] as string[] };
 
-  // Quotes + fundamentals, one company at a time (small N).
+  // Quotes, one company at a time (small N).
   for (const code of codes) {
     try {
       const q = await fetchQuote(code);
@@ -40,21 +40,9 @@ Deno.serve(async (req) => {
         });
         result.quotes++;
       }
-      // Fundamentals: only present on SAHMK Starter+. On the free tier every
-      // field is null, so we skip the upsert entirely rather than clobber the
-      // hand-seeded P/E / market cap with nulls. Upgrading the plan makes this
-      // start updating automatically.
-      const f = await fetchFundamentals(code);
-      if (f && (f.pe !== null || f.marketCap !== null || f.dividendYield !== null)) {
-        await db.from("fundamentals").upsert({
-          code,
-          pe: f.pe,
-          market_cap: f.marketCap,
-          dividend_yield: f.dividendYield,
-          updated_at: new Date().toISOString(),
-        });
-        result.fundamentals++;
-      }
+      // Fundamentals only appear on SAHMK Starter+; on the free tier /company/
+      // always returns nulls, so calling it here just burns burst-rate quota
+      // for nothing. Hand-seeded fundamentals in Postgres are used instead.
     } catch (e) {
       result.errors.push(`${code}: ${(e as Error).message}`);
     }

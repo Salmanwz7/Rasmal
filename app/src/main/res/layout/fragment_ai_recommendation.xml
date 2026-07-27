@@ -63,29 +63,29 @@
                     android:background="@drawable/bg_pill_green"
                     android:paddingHorizontal="@dimen/space_12"
                     android:paddingVertical="6dp"
-                    android:text="@string/buy_confidence"
                     android:textColor="@color/on_primary"
                     android:textSize="12sp"
-                    android:textStyle="bold" />
+                    android:textStyle="bold"
+                    tools:text="BUY · 87% CONFIDENCE" />
 
                 <TextView
                     android:id="@+id/company_name"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/space_16"
-                    android:text="@string/elm_company"
                     android:textColor="@color/text_primary"
                     android:textSize="24sp"
-                    android:textStyle="bold" />
+                    android:textStyle="bold"
+                    tools:text="Elm Company (7203)" />
 
                 <TextView
                     android:id="@+id/company_sector"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/space_4"
-                    android:text="@string/elm_sector"
                     android:textColor="@color/text_secondary"
-                    android:textSize="14sp" />
+                    android:textSize="14sp"
+                    tools:text="Technology · نقية Shariah compliant" />
             </LinearLayout>
 
             <!-- 2x2 stat grid -->

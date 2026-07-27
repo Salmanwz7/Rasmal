@@ -16,7 +16,7 @@ import androidx.navigation.fragment.NavHostFragment;
 
 import com.example.rasmal.R;
 import com.example.rasmal.data.ApiClient;
-import com.example.rasmal.data.MockData;
+import com.example.rasmal.data.OnboardingHoldings;
 import com.example.rasmal.databinding.FragmentAddStockDetailsBinding;
 import com.example.rasmal.model.Holding;
 import com.example.rasmal.model.Stock;
@@ -47,7 +47,7 @@ public class AddStockDetailsFragment extends Fragment {
         api = new ApiClient(requireContext());
         String code = getArguments() != null
                 ? getArguments().getString(AddStockFragment.ARG_STOCK_CODE) : null;
-        stock = MockData.stockByCode(code);
+        stock = ApiClient.companyByCode(code);
 
         // Guard: if we somehow arrived without a valid stock, go back.
         if (stock == null) {
@@ -115,7 +115,7 @@ public class AddStockDetailsFragment extends Fragment {
 
     /** Replace the in-memory holding with the same code if present, otherwise append. */
     private void upsertLocal(Holding h) {
-        List<Holding> list = MockData.onboardingHoldings();
+        List<Holding> list = OnboardingHoldings.list();
         for (int i = 0; i < list.size(); i++) {
             if (h.code.equals(list.get(i).code)) {
                 list.set(i, h);
