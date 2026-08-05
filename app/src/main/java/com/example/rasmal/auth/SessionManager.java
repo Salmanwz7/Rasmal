@@ -48,7 +48,9 @@ public class SessionManager {
         return prefs.getString(KEY_REFRESH, null) != null;
     }
 
-    /** Clears credentials but keeps per-user onboarded flags for returning users. */
+    /**
+     * Clears credentials but keeps per-user onboarded flags for returning users.
+     */
     public void clear() {
         prefs.edit()
                 .remove(KEY_ACCESS)
@@ -67,4 +69,8 @@ public class SessionManager {
         String userId = prefs.getString(KEY_USER_ID, "");
         prefs.edit().putBoolean(KEY_ONBOARDED_PREFIX + userId, true).apply();
     }
+    public void updateFullName(String fullName) {
+        prefs.edit().putString(KEY_NAME, fullName).apply();
+    }
+
 }

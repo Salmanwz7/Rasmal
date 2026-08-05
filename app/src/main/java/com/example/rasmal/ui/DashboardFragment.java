@@ -54,6 +54,9 @@ public class DashboardFragment extends Fragment {
         binding.aiRecCard.setOnClickListener(v ->
                 NavHostFragment.findNavController(this)
                         .navigate(R.id.action_dashboard_to_aiRec));
+        binding.settingsIcon.setOnClickListener(v ->
+                NavHostFragment.findNavController(this)
+                        .navigate(R.id.action_dashboard_to_profileSettings));
 
         greetUser();
         loadPortfolio();

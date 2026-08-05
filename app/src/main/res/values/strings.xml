@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
+    <string name="settings_title">Profile &amp; Settings</string>
+    <string name="settings_name_label">Display name</string>
+    <string name="settings_name_hint">Your name</string>
+    <string name="settings_email_label">Email</string>
+    <string name="settings_save">Save changes</string>
+    <string name="settings_logout">Log out</string>
     <string name="app_name">Rasmal</string>
 
     <!-- Common -->
