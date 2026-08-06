@@ -98,7 +98,7 @@ Sprints 1–2 are complete; Sprint 3 is underway. Legend: ✅ done · 🟡 parti
 | 010 | AI Chat | AI Chat Assistant | ✅ | LLM answers grounded in the user's data + conversation history; markdown rendered. |
 | 014 | Dashboard | Portfolio Health Analysis | ✅ | Over‑concentration warnings — >25% single stock, >40% single sector. |
 | 015 | Profile | Profile and Settings | ✅ | Edit display name, change risk profile (persisted), secure logout. Reachable from the Profile tab. |
-| 013 | Notifications | Earnings Alerts | 🟡 | Alerts screen, adapter, unread badge and API calls are built — but **no `alerts` migration**, and delivery is in‑app only (no push). |
+| 013 | Notifications | Earnings Alerts | 🟡 | Screen, adapter, unread badge, API calls and the `alerts` + `earnings_calendar` schema are all in place — but **nothing populates the calendar yet**, and delivery is in‑app only (no push). |
 | 012 | Market Data | Market News Feed | 🟡 | Backend caches marketaux news into `news`; **layouts exist but no fragment/nav entry** — the News tab still shows "coming soon". |
 | 011 | Market Data | Shariah Compliance Filter | ⬜ | Still a hardcoded نقية label in layouts; needs a data source + classification. |
 
@@ -106,7 +106,7 @@ Sprints 1–2 are complete; Sprint 3 is underway. Legend: ✅ done · 🟡 parti
 
 Two Sprint 3 stories are further from done than their commits suggest — worth knowing before you demo:
 
-- **Alerts (013)** — `ApiClient.getAlerts()` queries `/rest/v1/alerts`, but **no migration creates that table**. Against a freshly migrated database the request fails and `AlertsFragment` silently falls back to its empty state. A `0005_alerts.sql` migration (table + RLS + a job to populate upcoming earnings) is still needed.
+- **Alerts (013)** — `0005_alerts.sql` now creates the `alerts` table (RLS‑scoped, client may only flip `read`) plus an `earnings_calendar` reference table and `generate_earnings_alerts()` to fan entries out to holders. What's still missing is a **source of earnings dates**: until something populates `earnings_calendar`, the fan‑out has nothing to do and the feed stays empty. Wiring it into `market-refresh` is the next step.
 - **News feed (012)** — commit `b763a75` added `fragment_news.xml` and `item_market_news.xml` only. There is no `NewsFragment`, no adapter, and no `newsFragment` destination in `nav_graph.xml`, so the bottom‑nav News tab falls through to the "coming soon" toast in `MainActivity`.
 
 ---
@@ -151,7 +151,8 @@ app/src/main/
     └── values/                    # colors, strings, dimens, styles, themes
 
 supabase/                          # the backend (see supabase/README.md)
-├── migrations/                    # 0001 schema + RLS · 0002 seed · 0003 profiles · 0004 transactions
+├── migrations/                    # 0001 schema + RLS · 0002 seed · 0003 profiles
+│                                  # 0004 transactions · 0005 alerts + earnings calendar
 ├── functions/                     # recommendations, chat, market-refresh (Deno/TS) + _shared/
 ├── scripts/                       # fetch_statements.ts, generated seed SQL
 └── deploy.ps1                     # one-shot deploy helper for Windows
@@ -211,7 +212,7 @@ supabase functions deploy recommendations chat market-refresh
 ## 🗺 Roadmap — remaining in Sprint 3
 
 - **012 Market news feed** — build `NewsFragment` + adapter over the existing layouts, add the `newsFragment` destination, and point the News tab at it. The backend already caches the data.
-- **013 Earnings alerts** — add the missing `alerts` table migration (with RLS), populate it from upcoming earnings dates, then consider push delivery beyond the in‑app feed.
+- **013 Earnings alerts** — populate `earnings_calendar` from a real source and call `select public.generate_earnings_alerts();` from `market-refresh` on its schedule, then consider push delivery beyond the in‑app feed.
 - **011 Shariah compliance filter** — classify each stock نقية / مختلطة from a real source instead of the hardcoded label.
 - **Real financial statements** — replace the hand‑seeded `financial_statements` rows once a data source covering them is in place.
 
