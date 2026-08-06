@@ -112,6 +112,14 @@ public class ApiClient {
         enqueueArray(req, cb);
     }
 
+    /** GET /rest/v1/transactions → the current user's executed trade ledger, oldest first. */
+    public void getTransactions(Callback<JSONArray> cb) {
+        Request req = signed(rest()
+                + "/transactions?select=code,side,shares,price,created_at&order=created_at.asc");
+        if (req == null) { cb.onError("You're signed out. Please sign in again."); return; }
+        enqueueArray(req, cb);
+    }
+
     /** GET /rest/v1/profiles → the current user's profile row, or an empty object. */
     public void getProfile(Callback<JSONObject> cb) {
         Request req = signed(rest() + "/profiles?select=risk_profile,liquidity,onboarded&limit=1");
@@ -227,7 +235,36 @@ public class ApiClient {
             }
         });
     }
-
+    public void updateRiskProfile(String riskProfile, Callback<Void> cb) {
+        Session s = sessions.load();
+        if (s == null) { cb.onError("You're signed out. Please sign in again."); return; }
+        JSONObject body = new JSONObject();
+        try {
+            body.put("risk_profile", riskProfile);
+        } catch (JSONException e) {
+            cb.onError("Could not build request.");
+            return;
+        }
+        Request req = new Request.Builder()
+                .url(rest() + "/profiles?user_id=eq." + s.userId)
+                .header("apikey", BuildConfig.SUPABASE_ANON_KEY)
+                .header("Authorization", "Bearer " + s.accessToken)
+                .header("Content-Type", "application/json")
+                .header("Prefer", "return=minimal")
+                .patch(RequestBody.create(body.toString(), JSON))
+                .build();
+        client.newCall(req).enqueue(new okhttp3.Callback() {
+            @Override public void onFailure(@NonNull okhttp3.Call call, @NonNull IOException e) {
+                postError(cb, "Network error. Check your connection.");
+            }
+            @Override public void onResponse(@NonNull okhttp3.Call call, @NonNull Response response) {
+                try (Response r = response) {
+                    if (r.isSuccessful()) main.post(() -> cb.onSuccess(null));
+                    else postError(cb, "Couldn't update risk profile (" + r.code() + ").");
+                }
+            }
+        });
+    }
     /** Synchronous lookup into whatever catalog is currently cached, or null. */
     public static Stock companyByCode(String code) {
         List<Stock> cached = companyCatalog;
@@ -441,5 +478,54 @@ public class ApiClient {
 
     private <T> void postError(Callback<T> cb, String message) {
         main.post(() -> cb.onError(message));
+    }
+    /** GET /rest/v1/alerts → the current user's notification feed, newest first. */
+    public void getAlerts(Callback<JSONArray> cb) {
+        Request req = signed(rest()
+                + "/alerts?select=id,code,title,body,earnings_date,read&order=created_at.desc");
+        if (req == null) { cb.onError("You're signed out. Please sign in again."); return; }
+        enqueueArray(req, cb);
+    }
+
+    /** GET count of unread alerts, for the Dashboard bell badge. */
+    public void getUnreadAlertCount(Callback<Integer> cb) {
+        Request req = signed(rest() + "/alerts?select=id&read=eq.false");
+        if (req == null) { cb.onError("You're signed out. Please sign in again."); return; }
+        enqueueArray(req, new Callback<JSONArray>() {
+            @Override public void onSuccess(JSONArray rows) { cb.onSuccess(rows.length()); }
+            @Override public void onError(String message) { cb.onError(message); }
+        });
+    }
+
+    /** Marks one alert as read (tap-to-dismiss). */
+    public void markAlertRead(long id, Callback<Void> cb) {
+        Session s = sessions.load();
+        if (s == null) { cb.onError("You're signed out. Please sign in again."); return; }
+        JSONObject body = new JSONObject();
+        try {
+            body.put("read", true);
+        } catch (JSONException e) {
+            cb.onError("Could not build request.");
+            return;
+        }
+        Request req = new Request.Builder()
+                .url(rest() + "/alerts?id=eq." + id)
+                .header("apikey", BuildConfig.SUPABASE_ANON_KEY)
+                .header("Authorization", "Bearer " + s.accessToken)
+                .header("Content-Type", "application/json")
+                .header("Prefer", "return=minimal")
+                .patch(RequestBody.create(body.toString(), JSON))
+                .build();
+        client.newCall(req).enqueue(new okhttp3.Callback() {
+            @Override public void onFailure(@NonNull okhttp3.Call call, @NonNull IOException e) {
+                postError(cb, "Network error. Check your connection.");
+            }
+            @Override public void onResponse(@NonNull okhttp3.Call call, @NonNull Response response) {
+                try (Response r = response) {
+                    if (r.isSuccessful()) main.post(() -> cb.onSuccess(null));
+                    else postError(cb, "Couldn't update alert (" + r.code() + ").");
+                }
+            }
+        });
     }
 }

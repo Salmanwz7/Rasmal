@@ -39,9 +39,12 @@
             </LinearLayout>
 
             <FrameLayout
+                android:id="@+id/bell_button"
                 android:layout_width="44dp"
                 android:layout_height="44dp"
-                android:background="@drawable/bg_circle_surface">
+                android:background="@drawable/bg_circle_surface"
+                android:clickable="true"
+                android:focusable="true">
 
                 <ImageView
                     android:layout_width="22dp"
@@ -49,6 +52,43 @@
                     android:layout_gravity="center"
                     android:contentDescription="Notifications"
                     android:src="@drawable/ic_bell"
+                    tools:ignore="HardcodedText" />
+
+                <TextView
+                    android:id="@+id/bell_badge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="top|end"
+                    android:layout_marginTop="2dp"
+                    android:layout_marginEnd="2dp"
+                    android:background="@drawable/bg_pill_red"
+                    android:minWidth="16dp"
+                    android:minHeight="16dp"
+                    android:gravity="center"
+                    android:paddingHorizontal="4dp"
+                    android:text="1"
+                    android:textColor="@android:color/white"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:visibility="gone"
+                    tools:ignore="HardcodedText"
+                    tools:visibility="visible" />
+            </FrameLayout>
+            <FrameLayout
+                android:id="@+id/settings_icon"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:layout_marginStart="@dimen/space_8"
+                android:background="@drawable/bg_circle_surface"
+                android:clickable="true"
+                android:focusable="true">
+
+                <ImageView
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:layout_gravity="center"
+                    android:contentDescription="Profile and settings"
+                    android:src="@drawable/ic_profile"
                     tools:ignore="HardcodedText" />
             </FrameLayout>
         </LinearLayout>
@@ -200,6 +240,141 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
+
+        <!-- Portfolio health warning (over-concentration) -->
+        <LinearLayout
+            android:id="@+id/concentration_warning_card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_12"
+            android:background="@drawable/bg_warning_card"
+            android:orientation="horizontal"
+            android:padding="@dimen/space_16"
+            android:visibility="gone"
+            tools:visibility="visible">
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_marginTop="1dp"
+                android:contentDescription="Portfolio health warning"
+                android:src="@drawable/ic_warning"
+                tools:ignore="HardcodedText" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/space_12"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/portfolio_health"
+                    android:textColor="@color/text_primary"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/concentration_warning_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/space_4"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="13sp"
+                    tools:text="You're overweight in Elm (32% of your portfolio). Consider diversifying." />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Performance chart -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/performance_card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_12"
+            app:cardBackgroundColor="@color/surface"
+            app:cardCornerRadius="@dimen/radius_lg"
+            app:cardElevation="@dimen/card_elevation"
+            app:strokeColor="@color/border_subtle"
+            app:strokeWidth="1dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="@dimen/space_16">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/performance"
+                        android:textColor="@color/text_primary"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/performance_change"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/up_green"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        tools:text="+4.20%" />
+                </LinearLayout>
+
+                <com.example.rasmal.view.LineChartView
+                    android:id="@+id/performance_chart"
+                    android:layout_width="match_parent"
+                    android:layout_height="140dp"
+                    android:layout_marginTop="@dimen/space_12"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/performance_empty"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/space_16"
+                    android:layout_marginBottom="@dimen/space_4"
+                    android:gravity="center"
+                    android:text="@string/performance_empty"
+                    android:textColor="@color/text_tertiary"
+                    android:textSize="13sp" />
+
+                <LinearLayout
+                    android:id="@+id/performance_range_row"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/space_8"
+                    android:orientation="horizontal"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:id="@+id/performance_start_label"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:textColor="@color/text_tertiary"
+                        android:textSize="11sp"
+                        tools:text="12 Jul" />
+
+                    <TextView
+                        android:id="@+id/performance_end_label"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/text_tertiary"
+                        android:textSize="11sp"
+                        tools:text="Today" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
         <!-- AI recommendation card -->
         <LinearLayout
