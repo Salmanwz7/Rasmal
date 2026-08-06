@@ -17,6 +17,7 @@ import androidx.navigation.fragment.NavHostFragment;
 import com.example.rasmal.R;
 import com.example.rasmal.auth.Session;
 import com.example.rasmal.auth.SessionManager;
+import com.example.rasmal.auth.SupabaseAuth;
 import com.example.rasmal.data.ApiClient;
 import com.example.rasmal.databinding.FragmentProfileSettingsBinding;
 import com.google.android.material.card.MaterialCardView;
@@ -60,6 +61,9 @@ public class ProfileSettingsFragment extends Fragment {
         binding.btnBack.setOnClickListener(v ->
                 NavHostFragment.findNavController(this).navigateUp());
         binding.btnLogout.setOnClickListener(v -> {
+            if (s != null) {
+                SupabaseAuth.getInstance().signOut(s.accessToken);
+            }
             sessionManager.clear();
             NavHostFragment.findNavController(this)
                     .navigate(R.id.action_profileSettings_to_signIn);

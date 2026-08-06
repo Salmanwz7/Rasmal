@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Toast;
 
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -68,8 +67,8 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             }
             if (id == R.id.nav_profile) {
-                showSignOutDialog();
-                return false;
+                navigateTab(R.id.profileSettingsFragment);
+                return true;
             }
             Toast.makeText(this, item.getTitle() + " — coming soon", Toast.LENGTH_SHORT).show();
             return false;
@@ -126,30 +125,6 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
-    private void showSignOutDialog() {
-        SessionManager sessionManager = new SessionManager(this);
-        Session session = sessionManager.load();
-        String email = session != null ? session.email : "";
-
-        new AlertDialog.Builder(this)
-                .setTitle("Sign out")
-                .setMessage(email.isEmpty()
-                        ? "Sign out of Rasmal?"
-                        : "Signed in as " + email + ". Sign out?")
-                .setNegativeButton("Cancel", null)
-                .setPositiveButton("Sign Out", (d, w) -> {
-                    if (session != null) {
-                        SupabaseAuth.getInstance().signOut(session.accessToken);
-                    }
-                    sessionManager.clear();
-                    NavOptions options = new NavOptions.Builder()
-                            .setPopUpTo(R.id.nav_graph, true)
-                            .build();
-                    navController.navigate(R.id.signInFragment, null, options);
-                })
-                .show();
-    }
-
     /** Skips the sign-in screen when a session is stored, and refreshes it in the background. */
     private void restoreSession() {
         SessionManager sessionManager = new SessionManager(this);
@@ -176,7 +151,7 @@ public class MainActivity extends AppCompatActivity {
     private void updateBottomNav(BottomNavigationView nav, NavDestination destination) {
         int id = destination.getId();
         boolean show = id == R.id.dashboardFragment || id == R.id.aiChatFragment
-                || id == R.id.portfolioFragment;
+                || id == R.id.portfolioFragment || id == R.id.profileSettingsFragment;
         nav.setVisibility(show ? View.VISIBLE : View.GONE);
         if (id == R.id.dashboardFragment) {
             nav.getMenu().findItem(R.id.nav_home).setChecked(true);
@@ -184,6 +159,8 @@ public class MainActivity extends AppCompatActivity {
             nav.getMenu().findItem(R.id.nav_chat).setChecked(true);
         } else if (id == R.id.portfolioFragment) {
             nav.getMenu().findItem(R.id.nav_portfolio).setChecked(true);
+        } else if (id == R.id.profileSettingsFragment) {
+            nav.getMenu().findItem(R.id.nav_profile).setChecked(true);
         }
     }
 
