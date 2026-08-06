@@ -10,10 +10,10 @@ Rasmal is a native Android app that lets a user sign up, describe their portfoli
 ![minSdk](https://img.shields.io/badge/minSdk-24-blue)
 ![targetSdk](https://img.shields.io/badge/targetSdk-36-blue)
 
-> ℹ️ **Status: real backend, wired end‑to‑end.**
-> The app now runs on a **Supabase backend** — email/password **Auth**, a Postgres database with **Row‑Level Security**, and **Edge Functions** that score Saudi stocks and proxy an LLM for recommendations and chat. **No third‑party API keys ship in the APK**; the app talks only to Edge Functions and PostgREST using the signed‑in user's JWT.
+> ℹ️ **Status: real backend, wired end‑to‑end. Sprint 3 in progress.**
+> The app runs on a **Supabase backend** — email/password **Auth**, a Postgres database with **Row‑Level Security**, and **Edge Functions** that score Saudi stocks and proxy an LLM for recommendations and chat. **No third‑party API keys ship in the APK**; the app talks only to Edge Functions and PostgREST using the signed‑in user's JWT.
 >
-> A few things remain seeded or mock while Sprint 3 is pending: the dashboard **performance chart** is still demo data, company **financial statements** are hand‑seeded (the free market‑data tier omits them), and the **Shariah** label is a placeholder. Recommendations are **AI analysis, not financial advice.** See the [backlog status](#-backlog-status) for the exact picture.
+> The dashboard **performance chart is now real**, rebuilt from your own transaction ledger. Still outstanding: company **financial statements** are hand‑seeded (the free market‑data tier omits them), the **Shariah** label is a hardcoded placeholder, the **News** tab has layouts but no screen behind it yet, and the **Alerts** screen needs its backing table (see [Known gaps](#-known-gaps)). Recommendations are **AI analysis, not financial advice.** See the [backlog status](#-backlog-status) for the exact picture.
 
 ---
 
@@ -33,6 +33,8 @@ Rasmal is a native Android app that lets a user sign up, describe their portfoli
 |---|---|---|
 | ![Dashboard](screenshots/07-dashboard.png) | ![AI Recommendation](screenshots/08-ai-recommendation.png) | ![AI Chat](screenshots/09-ai-chat.png) |
 
+> 📸 **Still to capture:** the screens added in Sprint 3 — **Portfolio tab** (`10-portfolio.png`), **Profile & Settings** (`11-profile-settings.png`), and **Alerts** (`12-alerts.png`). Drop them in `screenshots/` and add a row here.
+
 ---
 
 ## ✨ Features
@@ -42,11 +44,15 @@ Rasmal is a native Android app that lets a user sign up, describe their portfoli
   - **Portfolio step** — declare available cash and the stocks you own. Cash is **persisted to your Supabase profile**.
   - **Add a stock** — search a Tadawul catalog by name / symbol / ticker, pick a stock, then enter your **number of shares** and **average buy price**; the holding is **saved to Supabase**.
   - **Risk step** — choose Conservative / Balanced / Aggressive; the choice is **persisted and feeds recommendations**.
-- **Dashboard (real)** — total portfolio value, **today's P&L**, **total return**, and **available liquidity** computed from your holdings and live cached quotes. (Performance chart is still demo data.)
-- **Manage holdings (real)** — add, **edit**, or **remove** a holding; changes sync to Supabase and the portfolio recalculates.
+- **Dashboard (real)** — total portfolio value, **today's P&L**, **total return**, and **available liquidity** computed from your holdings and live cached quotes.
+  - **Performance chart (real)** — reconstructed from your actual transaction ledger plus current value, with the change over the period. Shows an empty state until you have your first trade.
+  - **Concentration warnings (real)** — flags when a single stock exceeds **25%** or one sector exceeds **40%** of the portfolio, surfacing the more severe of the two.
+- **Portfolio tab (real)** — manage holdings any time after onboarding: add, **edit**, or **remove** a holding, and edit your available liquidity. Changes sync to Supabase and the portfolio recalculates.
 - **AI Recommendation (real)** — a hybrid scoring engine ranks Saudi companies for your risk profile and an LLM narrates it: amount to invest, buy range, target, stop, reasoning bullets, and a confidence level.
 - **Trade Confirmation (real)** — after a recommendation, confirm whether you **bought or sold**, enter the **actual price and quantity**, and the portfolio updates (weighted‑average cost on buys; reduce/close on sells). Each trade is stored in a per‑user ledger.
-- **AI Chat (real)** — ask about your portfolio or any Saudi stock; answers come from the LLM with your conversation history as context.
+- **AI Chat (real)** — ask about your portfolio or any Saudi stock; answers come from the LLM with your conversation history as context. Replies are rendered through a lightweight markdown formatter.
+- **Profile & Settings (real)** — edit your display name, switch your **risk profile** (persisted to Supabase and immediately reflected in recommendations), and sign out securely.
+- **Alerts** — an in‑app feed of earnings notifications for your holdings, with unread badging and tap‑to‑dismiss. ⚠️ *Needs its backing table — see [Known gaps](#-known-gaps).*
 
 ### Screen flow
 
@@ -56,8 +62,19 @@ Sign In ──► Sign Up ──► Onboarding: Portfolio ──► Add a stock 
                                      │            (tap a row to edit)
                                      ▼
                               Onboarding: Risk ──► Dashboard ──► AI Recommendation ──► Confirm trade
-                                                        └──────► AI Chat
+                                                        ├──────► AI Chat
+                                                        └──────► Alerts
 ```
+
+Once you're past onboarding, a **bottom navigation bar** appears on the main screens:
+
+| Tab | Destination |
+|---|---|
+| Home | Dashboard |
+| Portfolio | Manage holdings + liquidity |
+| AI Chat | Chat assistant |
+| News | *Not wired yet — shows "coming soon"* |
+| Profile | Profile & Settings |
 
 > Note: **Sign In routes to the Dashboard** if you've onboarded, otherwise to onboarding. The onboarding questions appear the first time through.
 
@@ -65,7 +82,7 @@ Sign In ──► Sign Up ──► Onboarding: Portfolio ──► Add a stock 
 
 ## ✅ Backlog status
 
-Sprints 1–2 are complete. Legend: ✅ done · 🟡 partial · ⬜ not started (Sprint 3).
+Sprints 1–2 are complete; Sprint 3 is underway. Legend: ✅ done · 🟡 partial · ⬜ not started.
 
 | # | Component | Story | Status | Notes |
 |---|-----------|-------|:------:|-------|
@@ -73,19 +90,24 @@ Sprints 1–2 are complete. Legend: ✅ done · 🟡 partial · ⬜ not started 
 | 002 | Login & Auth | Login and Authentication | ✅ | Sign in, session persisted across launches, routing to onboarding/dashboard, sign out. |
 | 003 | Onboarding | Portfolio Setup | ✅ | Holdings + available cash persisted (`profiles` + `holdings`). |
 | 004 | Onboarding | Risk Profiling | ✅ | Risk appetite persisted and used as a factor in recommendations. |
-| 005 | Dashboard | Portfolio Dashboard | ✅¹ | Real value, today's P&L, total return, liquidity. ¹Performance chart still mock. |
-| 006 | Portfolio Mgmt | Manage Holdings | ✅ | Add, edit, and remove — all persisted (RLS‑scoped per user). |
+| 005 | Dashboard | Portfolio Dashboard | ✅ | Real value, today's P&L, total return, liquidity — **and the performance chart**, now built from the transaction ledger. |
+| 006 | Portfolio Mgmt | Manage Holdings | ✅ | Add, edit, and remove — all persisted (RLS‑scoped per user), reachable any time from the **Portfolio tab**. |
 | 007 | AI Engine | Stock Recommendation | ✅ | Scoring engine over cached market data + seeded fundamentals; amount, buy range, target, stop. |
 | 008 | AI Engine | Recommendation Reasoning | ✅ | Reasoning bullets + narrative + confidence level. |
 | 009 | Portfolio Mgmt | Trade Confirmation | ✅ | Bought/sold prompt, actual price + quantity, portfolio update, trade ledger. |
-| 010 | AI Chat | AI Chat Assistant | ✅ | LLM answers grounded in the user's data + conversation history. |
-| 012 | Market Data | Market News Feed | 🟡 | Backend caches marketaux news (`market-refresh`); **no in‑app screen yet**. |
-| 015 | Profile | Profile and Settings | 🟡 | Secure logout works; **profile/risk editing screen not built**. |
-| 011 | Market Data | Shariah Compliance Filter | ⬜ | Currently a placeholder label; needs a data source + classification. |
-| 013 | Notifications | Earnings Alerts | ⬜ | Upcoming‑earnings notifications not built. |
-| 014 | Dashboard | Portfolio Health Analysis | ⬜ | Over‑concentration warnings not built. |
+| 010 | AI Chat | AI Chat Assistant | ✅ | LLM answers grounded in the user's data + conversation history; markdown rendered. |
+| 014 | Dashboard | Portfolio Health Analysis | ✅ | Over‑concentration warnings — >25% single stock, >40% single sector. |
+| 015 | Profile | Profile and Settings | ✅ | Edit display name, change risk profile (persisted), secure logout. Reachable from the Profile tab. |
+| 013 | Notifications | Earnings Alerts | 🟡 | Alerts screen, adapter, unread badge and API calls are built — but **no `alerts` migration**, and delivery is in‑app only (no push). |
+| 012 | Market Data | Market News Feed | 🟡 | Backend caches marketaux news into `news`; **layouts exist but no fragment/nav entry** — the News tab still shows "coming soon". |
+| 011 | Market Data | Shariah Compliance Filter | ⬜ | Still a hardcoded نقية label in layouts; needs a data source + classification. |
 
-**Carry‑overs to fold into Sprint 3:** the dashboard **performance chart** (still demo data), and making the **holdings‑management screen reachable after onboarding** (today it lives only in the onboarding flow).
+### ⚠️ Known gaps
+
+Two Sprint 3 stories are further from done than their commits suggest — worth knowing before you demo:
+
+- **Alerts (013)** — `ApiClient.getAlerts()` queries `/rest/v1/alerts`, but **no migration creates that table**. Against a freshly migrated database the request fails and `AlertsFragment` silently falls back to its empty state. A `0005_alerts.sql` migration (table + RLS + a job to populate upcoming earnings) is still needed.
+- **News feed (012)** — commit `b763a75` added `fragment_news.xml` and `item_market_news.xml` only. There is no `NewsFragment`, no adapter, and no `newsFragment` destination in `nav_graph.xml`, so the bottom‑nav News tab falls through to the "coming soon" toast in `MainActivity`.
 
 ---
 
@@ -111,24 +133,28 @@ Sprints 1–2 are complete. Legend: ✅ done · 🟡 partial · ⬜ not started 
 ```
 app/src/main/
 ├── java/com/example/rasmal/
-│   ├── MainActivity.java          # single Activity, hosts the nav graph
-│   ├── auth/                      # SupabaseAuth, Session, SessionManager
+│   ├── MainActivity.java          # single Activity: nav graph + bottom nav + auth deep link
+│   ├── auth/                      # SupabaseAuth, Session, SessionManager, AuthCallback
 │   ├── data/
 │   │   ├── ApiClient.java         # JWT-signed calls to Edge Functions + PostgREST
-│   │   └── MockData.java          # remaining demo data (catalog, chart, fallbacks)
-│   ├── model/                     # Holding, Stock, ChatMessage, Recommendation
-│   ├── adapter/                   # RecyclerView adapters
+│   │   └── OnboardingHoldings.java# holdings staged during onboarding, before sign-up completes
+│   ├── model/                     # Holding, Stock, ChatMessage, Recommendation, Alert
+│   ├── adapter/                   # RecyclerView adapters (dashboard, portfolio, chat, alerts)
 │   ├── ui/                        # Fragments (one per screen)
-│   └── view/LineChartView.java    # custom chart view
+│   ├── util/MarkdownLite.java     # minimal markdown → Spannable for AI replies
+│   └── view/LineChartView.java    # custom canvas-drawn chart view
 └── res/
     ├── layout/                    # XML layouts
     ├── navigation/nav_graph.xml   # screen graph + actions
+    ├── menu/bottom_nav_menu.xml   # bottom navigation tabs
     ├── drawable/                  # icons, backgrounds, gradients
     └── values/                    # colors, strings, dimens, styles, themes
 
 supabase/                          # the backend (see supabase/README.md)
-├── migrations/                    # schema + RLS, seed, profiles, transactions
-└── functions/                     # recommendations, chat, market-refresh (Deno/TS)
+├── migrations/                    # 0001 schema + RLS · 0002 seed · 0003 profiles · 0004 transactions
+├── functions/                     # recommendations, chat, market-refresh (Deno/TS) + _shared/
+├── scripts/                       # fetch_statements.ts, generated seed SQL
+└── deploy.ps1                     # one-shot deploy helper for Windows
 ```
 
 ---
@@ -182,11 +208,11 @@ supabase functions deploy recommendations chat market-refresh
 
 ---
 
-## 🗺 Roadmap — Sprint 3
+## 🗺 Roadmap — remaining in Sprint 3
 
-- **011 Shariah compliance filter** — classify each stock نقية / مختلطة from a real source.
-- **012 Market news feed** — surface the already‑cached news in the app.
-- **013 Earnings alerts** — notify users of upcoming earnings dates for their holdings.
-- **014 Portfolio health analysis** — warn on single‑stock / sector over‑concentration.
-- **015 Profile & settings** — edit personal details and risk preferences.
-- **Carry‑overs** — real dashboard performance chart; reach the holdings‑management screen after onboarding.
+- **012 Market news feed** — build `NewsFragment` + adapter over the existing layouts, add the `newsFragment` destination, and point the News tab at it. The backend already caches the data.
+- **013 Earnings alerts** — add the missing `alerts` table migration (with RLS), populate it from upcoming earnings dates, then consider push delivery beyond the in‑app feed.
+- **011 Shariah compliance filter** — classify each stock نقية / مختلطة from a real source instead of the hardcoded label.
+- **Real financial statements** — replace the hand‑seeded `financial_statements` rows once a data source covering them is in place.
+
+**Done since the last README update:** performance chart (005), portfolio health analysis (014), profile & settings (015), and reaching holdings management after onboarding via the Portfolio tab (006).
