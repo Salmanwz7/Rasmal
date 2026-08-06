@@ -1,8 +1,12 @@
 // recommendations — the hybrid engine the app calls for the AI Recommendation
 // screen. Reads cached market data + seeded statements, scores every company
-// (scoring.ts), picks the top candidate for the user's risk profile, and asks
-// the LLM to narrate the numbers. Falls back to a rules-only narrative if the
-// LLM is unavailable/rate-limited, and caches per (code, risk_profile).
+// (scoring.ts) for the user's risk profile, and serves two modes:
+//   - list mode (no `code` in the request): the top-ranked opportunities across
+//     the whole market, each with its confidence + trade levels + a rules-only
+//     reason list. Cheap and always fresh — no LLM call.
+//   - detail mode (`code` given): full write-up for one company, with an LLM
+//     narrative (falling back to rules-only if the LLM is unavailable/rate
+//     limited), cached per (code, risk_profile) for a few hours.
 import { requireUser, serviceClient, json } from "../_shared/supabase.ts";
 import { openRouterChat } from "../_shared/providers.ts";
 import {
@@ -13,7 +17,8 @@ import {
   scoreAll,
 } from "../_shared/scoring.ts";
 
-const FRESH_MS = 6 * 60 * 60 * 1000; // reuse a cached recommendation for 6h
+const FRESH_MS = 6 * 60 * 60 * 1000; // reuse a cached detail recommendation for 6h
+const LIST_SIZE = 10; // how many opportunities the list screen shows
 
 function normRisk(v: unknown): RiskProfile {
   const s = String(v ?? "").toLowerCase();
@@ -27,6 +32,7 @@ Deno.serve(async (req) => {
   const body = await req.json().catch(() => ({}));
   const risk = normRisk(body.risk_profile);
   const liquidity = Number(body.liquidity) > 0 ? Number(body.liquidity) : 100000;
+  const requestedCode = typeof body.code === "string" && body.code ? body.code : null;
 
   const db = serviceClient();
 
@@ -82,13 +88,38 @@ Deno.serve(async (req) => {
   });
 
   const ranked = scoreAll(dataset, risk);
-  const ranking = ranked.map((r) => {
-    const c = companies.find((x) => x.code === r.code)!;
-    return { code: r.code, name: c.name, confidence: r.confidence };
-  });
+  const tradable = ranked.filter((r) => (quote.get(r.code)?.price ?? 0) > 0);
 
-  // Pick the best candidate that actually has a price to trade around.
-  const top = ranked.find((r) => (quote.get(r.code)?.price ?? 0) > 0) ?? ranked[0];
+  if (!requestedCode) {
+    // --- List mode: the top opportunities across the whole market ---
+    const opportunities = tradable.slice(0, LIST_SIZE).map((r) => {
+      const d = dataset.find((x) => x.code === r.code)!;
+      const price = quote.get(r.code)!.price as number;
+      const trade = deriveTrade(price, r.confidence, risk, liquidity);
+      const { reasons } = fallbackNarrative(d, r, trade, risk);
+      return {
+        code: r.code,
+        name: d.name,
+        sector: d.sector,
+        confidence: r.confidence,
+        price,
+        change_pct: d.changePct,
+        subscores: r.subscores,
+        amount: trade.amount,
+        buy_low: trade.buyLow,
+        buy_high: trade.buyHigh,
+        target: trade.target,
+        stop: trade.stop,
+        reasons,
+      };
+    });
+    return json({ opportunities, risk_profile: risk });
+  }
+
+  // --- Detail mode: full narrative for one specific company ---
+  const top = tradable.find((r) => r.code === requestedCode)
+    ?? ranked.find((r) => r.code === requestedCode);
+  if (!top) return json({ error: "unknown company code" }, 404);
   const topData = dataset.find((d) => d.code === top.code)!;
   const price = quote.get(top.code)?.price ?? 0;
 
@@ -106,7 +137,6 @@ Deno.serve(async (req) => {
   ) {
     return json({
       pick: { ...cached.data, amount: trade.amount },
-      ranking,
       cached: true,
     });
   }
@@ -168,10 +198,10 @@ Deno.serve(async (req) => {
   };
   await db.from("recommendations").upsert(pick);
 
-  return json({ pick, ranking, cached: false, llm });
+  return json({ pick, cached: false, llm });
 });
 
-/** Deterministic narrative when the LLM is unavailable. */
+/** Deterministic narrative when the LLM is unavailable (or not requested). */
 function fallbackNarrative(d: CompanyData, s: Scored, trade: any, risk: RiskProfile) {
   const reasons: string[] = [];
   if (d.netProfitYoy != null) {

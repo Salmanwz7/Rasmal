@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/space_20"
+        android:layout_marginTop="@dimen/space_20"
+        android:text="@string/news_title"
+        android:textAppearance="@style/Text.Rasmal.Heading" />
+
+    <ProgressBar
+        android:id="@+id/loading"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="@dimen/space_24" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/news_list"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:paddingHorizontal="@dimen/space_20"
+        android:paddingTop="@dimen/space_16"
+        android:visibility="gone"
+        tools:listitem="@layout/item_news" />
+
+    <TextView
+        android:id="@+id/empty_news"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/space_24"
+        android:gravity="center"
+        android:text="@string/news_empty"
+        android:textColor="@color/text_tertiary"
+        android:textSize="15sp"
+        android:visibility="gone" />
+</LinearLayout>

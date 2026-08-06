@@ -30,8 +30,10 @@ import java.text.NumberFormat;
 import java.util.List;
 import java.util.Locale;
 
-/** Shows the top AI recommendation from the backend scoring engine. */
+/** Shows the full AI trade write-up for one company picked from {@link AIOpportunitiesFragment}. */
 public class AIRecommendationFragment extends Fragment {
+
+    public static final String ARG_CODE = "code";
 
     // Fallbacks used only until the user's saved profile loads (or if it's missing).
     private static final String DEFAULT_RISK = "balanced";
@@ -40,6 +42,7 @@ public class AIRecommendationFragment extends Fragment {
     private FragmentAiRecommendationBinding binding;
     private ApiClient api;
     private Recommendation rec;
+    private String code;
 
     // Sourced from the user's saved onboarding profile (Stories 003 & 004).
     private String riskProfile = DEFAULT_RISK;
@@ -56,6 +59,7 @@ public class AIRecommendationFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         api = new ApiClient(requireContext());
+        code = getArguments() != null ? getArguments().getString(ARG_CODE) : null;
 
         binding.statAmount.label.setText("Amount to invest");
         binding.statRange.label.setText("Buy range");
@@ -69,6 +73,11 @@ public class AIRecommendationFragment extends Fragment {
         binding.laterBtn.setOnClickListener(v ->
                 NavHostFragment.findNavController(this).popBackStack());
         binding.boughtBtn.setOnClickListener(v -> showTradeDialog());
+
+        if (code == null || code.isEmpty()) {
+            Snackbar.make(binding.getRoot(), "No company selected.", Snackbar.LENGTH_LONG).show();
+            return;
+        }
 
         showLoading();
         api.getCompanyCatalog(new ApiClient.Callback<List<Stock>>() {
@@ -106,7 +115,7 @@ public class AIRecommendationFragment extends Fragment {
     }
 
     private void loadRecommendation() {
-        api.getRecommendation(riskProfile, liquidity, new ApiClient.Callback<JSONObject>() {
+        api.getRecommendationDetail(riskProfile, liquidity, code, new ApiClient.Callback<JSONObject>() {
             @Override public void onSuccess(JSONObject resp) {
                 if (binding == null) return;
                 JSONObject pick = resp.optJSONObject("pick");
@@ -219,6 +228,7 @@ public class AIRecommendationFragment extends Fragment {
                 }
                 if (sold) {
                     double newShares = curShares - qty;
+
                     if (newShares <= 0) {
                         api.deleteHolding(code, onPortfolioUpdated("sell", qty, tradePrice,
                                 "Sale recorded — position closed."));

@@ -97,7 +97,7 @@
             app:destination="@id/profileSettingsFragment" />
         <action
             android:id="@+id/action_dashboard_to_aiRec"
-            app:destination="@id/aiRecommendationFragment" />
+            app:destination="@id/aiOpportunitiesFragment" />
         <action
             android:id="@+id/action_dashboard_to_aiChat"
             app:destination="@id/aiChatFragment" />
@@ -125,6 +125,15 @@
         android:label="AI Recommendation" />
 
     <fragment
+        android:id="@+id/aiOpportunitiesFragment"
+        android:name="com.example.rasmal.ui.AIOpportunitiesFragment"
+        android:label="AI Opportunities">
+        <action
+            android:id="@+id/action_aiOpportunities_to_aiRec"
+            app:destination="@id/aiRecommendationFragment" />
+    </fragment>
+
+    <fragment
         android:id="@+id/aiChatFragment"
         android:name="com.example.rasmal.ui.AIChatFragment"
         android:label="AI Chat" />
@@ -132,4 +141,9 @@
         android:id="@+id/alertsFragment"
         android:name="com.example.rasmal.ui.AlertsFragment"
         android:label="Alerts" />
+
+    <fragment
+        android:id="@+id/newsFragment"
+        android:name="com.example.rasmal.ui.NewsFragment"
+        android:label="Market News" />
 </navigation>

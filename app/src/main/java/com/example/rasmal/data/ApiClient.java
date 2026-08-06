@@ -64,13 +64,35 @@ public class ApiClient {
 
     // --- Public API --------------------------------------------------------
 
-    /** POST /functions/v1/recommendations → returns the response JSON (has "pick"). */
-    public void getRecommendation(String riskProfile, double liquidity,
-                                  Callback<JSONObject> cb) {
+    /** POST /functions/v1/recommendations → the top opportunities across the whole market. */
+    public void getOpportunities(String riskProfile, double liquidity, Callback<JSONArray> cb) {
         JSONObject body = new JSONObject();
         try {
             body.put("risk_profile", riskProfile);
             body.put("liquidity", liquidity);
+        } catch (JSONException e) {
+            cb.onError("Could not build request.");
+            return;
+        }
+        Request req = signed(functions() + "/recommendations");
+        if (req == null) { cb.onError("You're signed out. Please sign in again."); return; }
+        enqueueObject(post(req, body), new Callback<JSONObject>() {
+            @Override public void onSuccess(JSONObject o) {
+                cb.onSuccess(o.optJSONArray("opportunities") != null
+                        ? o.optJSONArray("opportunities") : new JSONArray());
+            }
+            @Override public void onError(String message) { cb.onError(message); }
+        });
+    }
+
+    /** POST /functions/v1/recommendations (with a code) → full detail (has "pick"). */
+    public void getRecommendationDetail(String riskProfile, double liquidity, String code,
+                                        Callback<JSONObject> cb) {
+        JSONObject body = new JSONObject();
+        try {
+            body.put("risk_profile", riskProfile);
+            body.put("liquidity", liquidity);
+            body.put("code", code);
         } catch (JSONException e) {
             cb.onError("Could not build request.");
             return;
@@ -133,9 +155,18 @@ public class ApiClient {
         });
     }
 
-    /** GET /rest/v1/companies → the reference catalog (code, name, badge, sector). */
+    /** GET /rest/v1/companies → the reference catalog (code, name, badge, sector, Shariah sector screen). */
     public void getCompanies(Callback<JSONArray> cb) {
-        Request req = signed(rest() + "/companies?select=code,name,badge,sector&is_active=eq.true");
+        Request req = signed(rest()
+                + "/companies?select=code,name,badge,sector,shariah_sector_compliant&is_active=eq.true");
+        if (req == null) { cb.onError("You're signed out. Please sign in again."); return; }
+        enqueueArray(req, cb);
+    }
+
+    /** GET /rest/v1/financial_statements → debt_ratio per code, newest first (for the Shariah filter). */
+    public void getDebtRatios(Callback<JSONArray> cb) {
+        Request req = signed(rest()
+                + "/financial_statements?select=code,debt_ratio,reported_at&order=reported_at.desc");
         if (req == null) { cb.onError("You're signed out. Please sign in again."); return; }
         enqueueArray(req, cb);
     }
@@ -144,24 +175,31 @@ public class ApiClient {
     // screen that needs a name/sector/badge for a code shares this lookup.
     private static volatile List<Stock> companyCatalog;
 
-    /** Company catalog (name/badge/sector/last price), fetched once and cached. */
+    /** Company catalog (name/badge/sector/last price/Shariah status), fetched once and cached. */
     public void getCompanyCatalog(Callback<List<Stock>> cb) {
         List<Stock> cached = companyCatalog;
         if (cached != null) { cb.onSuccess(cached); return; }
         getCompanies(new Callback<JSONArray>() {
             @Override public void onSuccess(JSONArray companies) {
                 getQuotes(new Callback<JSONArray>() {
-                    @Override public void onSuccess(JSONArray quotes) {
-                        companyCatalog = mergeCatalog(companies, quotes);
-                        cb.onSuccess(companyCatalog);
-                    }
-                    @Override public void onError(String message) {
-                        companyCatalog = mergeCatalog(companies, new JSONArray());
-                        cb.onSuccess(companyCatalog);
-                    }
+                    @Override public void onSuccess(JSONArray quotes) { withDebtRatios(companies, quotes, cb); }
+                    @Override public void onError(String message) { withDebtRatios(companies, new JSONArray(), cb); }
                 });
             }
             @Override public void onError(String message) { cb.onError(message); }
+        });
+    }
+
+    private void withDebtRatios(JSONArray companies, JSONArray quotes, Callback<List<Stock>> cb) {
+        getDebtRatios(new Callback<JSONArray>() {
+            @Override public void onSuccess(JSONArray debtRatios) {
+                companyCatalog = mergeCatalog(companies, quotes, debtRatios);
+                cb.onSuccess(companyCatalog);
+            }
+            @Override public void onError(String message) {
+                companyCatalog = mergeCatalog(companies, quotes, new JSONArray());
+                cb.onSuccess(companyCatalog);
+            }
         });
     }
 
@@ -273,11 +311,22 @@ public class ApiClient {
         return null;
     }
 
-    private static List<Stock> mergeCatalog(JSONArray companies, JSONArray quotes) {
+    // AAOIFI/Dow Jones Islamic Market-style threshold: interest-bearing debt must
+    // stay under 30% of total assets for the debt-ratio screen to pass.
+    private static final double SHARIAH_DEBT_RATIO_LIMIT = 30d;
+
+    private static List<Stock> mergeCatalog(JSONArray companies, JSONArray quotes, JSONArray debtRatios) {
         Map<String, Double> priceByCode = new HashMap<>();
         for (int i = 0; i < quotes.length(); i++) {
             JSONObject q = quotes.optJSONObject(i);
             if (q != null) priceByCode.put(q.optString("code"), q.optDouble("price", 0));
+        }
+        // Rows are ordered newest-first, so the first one seen per code is the latest.
+        Map<String, Double> debtRatioByCode = new HashMap<>();
+        for (int i = 0; i < debtRatios.length(); i++) {
+            JSONObject d = debtRatios.optJSONObject(i);
+            if (d == null || d.isNull("debt_ratio")) continue;
+            debtRatioByCode.putIfAbsent(d.optString("code"), d.optDouble("debt_ratio"));
         }
         List<Stock> out = new ArrayList<>();
         for (int i = 0; i < companies.length(); i++) {
@@ -285,13 +334,17 @@ public class ApiClient {
             if (c == null) continue;
             String code = c.optString("code");
             Double price = priceByCode.get(code);
+            boolean sectorOk = c.optBoolean("shariah_sector_compliant", true);
+            Double debtRatio = debtRatioByCode.get(code);
+            boolean compliant = sectorOk && (debtRatio == null || debtRatio < SHARIAH_DEBT_RATIO_LIMIT);
             out.add(new Stock(
                     c.optString("name", code),
                     code,
                     c.optString("badge", code),
                     badgeColorFor(code),
                     c.optString("sector", ""),
-                    price != null ? price : 0d));
+                    price != null ? price : 0d,
+                    compliant));
         }
         return out;
     }
@@ -479,6 +532,15 @@ public class ApiClient {
     private <T> void postError(Callback<T> cb, String message) {
         main.post(() -> cb.onError(message));
     }
+    /** GET /rest/v1/news → cached marketaux headlines, newest first (Story 012). */
+    public void getNews(Callback<JSONArray> cb) {
+        Request req = signed(rest()
+                + "/news?select=code,headline,url,source,sentiment,published_at"
+                + "&order=published_at.desc&limit=40");
+        if (req == null) { cb.onError("You're signed out. Please sign in again."); return; }
+        enqueueArray(req, cb);
+    }
+
     /** GET /rest/v1/alerts → the current user's notification feed, newest first. */
     public void getAlerts(Callback<JSONArray> cb) {
         Request req = signed(rest()

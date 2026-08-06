@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -64,13 +65,31 @@ public class AddStockFragment extends Fragment {
             @Override public void beforeTextChanged(CharSequence s, int a, int b, int c) {}
             @Override public void onTextChanged(CharSequence s, int a, int b, int c) {}
             @Override public void afterTextChanged(Editable s) {
-                int count = adapter.filter(s.toString());
-                binding.empty.setText(R.string.no_stocks_found);
-                binding.empty.setVisibility(count == 0 ? View.VISIBLE : View.GONE);
+                onFiltered(adapter.filter(s.toString()));
             }
         });
 
+        binding.chipAllStocks.setOnClickListener(v -> setCompliantOnly(false));
+        binding.chipCompliantOnly.setOnClickListener(v -> setCompliantOnly(true));
+
         loadCatalog();
+    }
+
+    private void setCompliantOnly(boolean compliantOnly) {
+        binding.chipAllStocks.setBackgroundResource(
+                compliantOnly ? R.drawable.bg_chip : R.drawable.bg_pill_green);
+        binding.chipAllStocks.setTextColor(ContextCompat.getColor(requireContext(),
+                compliantOnly ? R.color.text_primary : R.color.on_primary));
+        binding.chipCompliantOnly.setBackgroundResource(
+                compliantOnly ? R.drawable.bg_pill_green : R.drawable.bg_chip);
+        binding.chipCompliantOnly.setTextColor(ContextCompat.getColor(requireContext(),
+                compliantOnly ? R.color.on_primary : R.color.text_primary));
+        onFiltered(adapter.setCompliantOnly(compliantOnly));
+    }
+
+    private void onFiltered(int count) {
+        binding.empty.setText(R.string.no_stocks_found);
+        binding.empty.setVisibility(count == 0 ? View.VISIBLE : View.GONE);
     }
 
     private void loadCatalog() {

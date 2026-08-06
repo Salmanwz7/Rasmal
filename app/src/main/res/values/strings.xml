@@ -41,6 +41,12 @@
     <string name="search_stocks_hint">Search by name or symbol…</string>
     <string name="no_stocks_found">No stocks found</string>
 
+    <!-- Shariah compliance filter (Story 011) -->
+    <string name="shariah_filter_all">All stocks</string>
+    <string name="shariah_filter_compliant">✓ Shariah-compliant only</string>
+    <string name="shariah_compliant_short">نقية</string>
+    <string name="shariah_mixed_short">مختلطة</string>
+
     <!-- Add stock: details -->
     <string name="add_holding_title">Add holding</string>
     <string name="number_of_shares">Number of shares</string>
@@ -66,7 +72,7 @@
     <string name="portfolio_value">SAR 0</string>
     <string name="portfolio_delta">0.00%</string>
     <string name="ai_recommendation">✨ AI Recommendation</string>
-    <string name="ai_rec_text">Get today\'s AI-powered stock pick</string>
+    <string name="ai_rec_text">Explore today\'s AI-scored market opportunities</string>
     <string name="ai_rec_subtitle">Personalized to your risk profile and real Tadawul data.</string>
     <string name="your_holdings">Your holdings</string>
     <string name="see_all">See all</string>
@@ -76,6 +82,20 @@
     <string name="performance_empty">No trade history yet — this chart fills in once you confirm your first trade.</string>
     <string name="portfolio_health">Portfolio health</string>
     <string name="catalog_load_error">Couldn\'t load stocks: %1$s</string>
+
+    <!-- Market news feed (Story 012) -->
+    <string name="news_title">Market News</string>
+    <string name="news_empty">No news available right now.</string>
+    <string name="news_market_wide">Market</string>
+    <string name="news_sentiment_positive">Positive</string>
+    <string name="news_sentiment_negative">Negative</string>
+    <string name="news_sentiment_neutral">Neutral</string>
+    <string name="news_no_browser">No app found to open this link.</string>
+
+    <!-- AI Opportunities (market-wide list) -->
+    <string name="ai_opportunities_title">AI Opportunities</string>
+    <string name="ai_opportunities_subtitle">Top-scored picks across the market for your risk profile.</string>
+    <string name="ai_opportunities_empty">No opportunities available right now.</string>
 
     <!-- AI Recommendation -->
     <string name="ai_recommendation_title">AI Recommendation</string>

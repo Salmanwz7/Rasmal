@@ -70,6 +70,10 @@ public class MainActivity extends AppCompatActivity {
                 navigateTab(R.id.profileSettingsFragment);
                 return true;
             }
+            if (id == R.id.nav_news) {
+                navigateTab(R.id.newsFragment);
+                return true;
+            }
             Toast.makeText(this, item.getTitle() + " — coming soon", Toast.LENGTH_SHORT).show();
             return false;
         });
@@ -151,7 +155,8 @@ public class MainActivity extends AppCompatActivity {
     private void updateBottomNav(BottomNavigationView nav, NavDestination destination) {
         int id = destination.getId();
         boolean show = id == R.id.dashboardFragment || id == R.id.aiChatFragment
-                || id == R.id.portfolioFragment || id == R.id.profileSettingsFragment;
+                || id == R.id.portfolioFragment || id == R.id.profileSettingsFragment
+                || id == R.id.newsFragment;
         nav.setVisibility(show ? View.VISIBLE : View.GONE);
         if (id == R.id.dashboardFragment) {
             nav.getMenu().findItem(R.id.nav_home).setChecked(true);
@@ -161,6 +166,8 @@ public class MainActivity extends AppCompatActivity {
             nav.getMenu().findItem(R.id.nav_portfolio).setChecked(true);
         } else if (id == R.id.profileSettingsFragment) {
             nav.getMenu().findItem(R.id.nav_profile).setChecked(true);
+        } else if (id == R.id.newsFragment) {
+            nav.getMenu().findItem(R.id.nav_news).setChecked(true);
         }
     }
 

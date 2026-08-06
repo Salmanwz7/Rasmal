@@ -8,6 +8,7 @@ import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.rasmal.R;
 import com.example.rasmal.databinding.ItemStockBinding;
 import com.example.rasmal.model.Stock;
 
@@ -15,7 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-/** Search-result list of catalog stocks. Supports case-insensitive filtering. */
+/** Search-result list of catalog stocks. Supports case-insensitive filtering + a Shariah filter. */
 public class StockAdapter extends RecyclerView.Adapter<StockAdapter.VH> {
 
     public interface OnStockClick {
@@ -26,6 +27,7 @@ public class StockAdapter extends RecyclerView.Adapter<StockAdapter.VH> {
     private final List<Stock> shown;
     private final OnStockClick listener;
     private String lastQuery = "";
+    private boolean compliantOnly = false;
 
     public StockAdapter(List<Stock> all, OnStockClick listener) {
         this.all.addAll(all);
@@ -33,28 +35,35 @@ public class StockAdapter extends RecyclerView.Adapter<StockAdapter.VH> {
         this.listener = listener;
     }
 
-    /** Replaces the full catalog (e.g. once it finishes loading) and re-applies the last filter. */
+    /** Replaces the full catalog (e.g. once it finishes loading) and re-applies the last filters. */
     public void setAll(List<Stock> newAll) {
         all.clear();
         all.addAll(newAll);
-        filter(lastQuery);
+        applyFilters();
     }
 
-    /** Filters by name or code; returns the number of visible rows. */
+    /** Filters by name/code/badge; returns the number of visible rows. */
     public int filter(String query) {
         lastQuery = query == null ? "" : query;
+        return applyFilters();
+    }
+
+    /** Restricts the list to Shariah-compliant (نقية) stocks only, or shows all. */
+    public int setCompliantOnly(boolean compliantOnly) {
+        this.compliantOnly = compliantOnly;
+        return applyFilters();
+    }
+
+    private int applyFilters() {
         shown.clear();
-        String q = query == null ? "" : query.trim().toLowerCase(Locale.US);
-        if (q.isEmpty()) {
-            shown.addAll(all);
-        } else {
-            for (Stock s : all) {
-                if (s.name.toLowerCase(Locale.US).contains(q)
-                        || s.code.toLowerCase(Locale.US).contains(q)
-                        || s.badge.toLowerCase(Locale.US).contains(q)) {
-                    shown.add(s);
-                }
-            }
+        String q = lastQuery.trim().toLowerCase(Locale.US);
+        for (Stock s : all) {
+            if (compliantOnly && !s.shariahCompliant) continue;
+            if (!q.isEmpty()
+                    && !s.name.toLowerCase(Locale.US).contains(q)
+                    && !s.code.toLowerCase(Locale.US).contains(q)
+                    && !s.badge.toLowerCase(Locale.US).contains(q)) continue;
+            shown.add(s);
         }
         notifyDataSetChanged();
         return shown.size();
@@ -77,6 +86,10 @@ public class StockAdapter extends RecyclerView.Adapter<StockAdapter.VH> {
         holder.b.name.setText(s.name);
         holder.b.subtitle.setText(String.format(Locale.US, "%s · %s", s.code, s.sector));
         holder.b.price.setText(formatPrice(s.price));
+        holder.b.shariahBadge.setText(s.shariahCompliant ? R.string.shariah_compliant_short
+                : R.string.shariah_mixed_short);
+        holder.b.shariahBadge.setTextColor(ContextCompat.getColor(holder.b.getRoot().getContext(),
+                s.shariahCompliant ? R.color.up_green : R.color.warning));
         holder.b.row.setOnClickListener(v -> {
             if (listener != null) listener.onStockClick(s);
         });

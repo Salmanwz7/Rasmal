@@ -13,14 +13,16 @@ public class Stock {
     public final int badgeColorRes;    // R.color.badge_*
     public final String sector;        // e.g. "Banks"
     public final double price;         // last price, used to pre-fill avg buy price
+    public final boolean shariahCompliant; // passes the business + debt-ratio screens (Story 011)
 
     public Stock(String name, String code, String badge, int badgeColorRes,
-                 String sector, double price) {
+                 String sector, double price, boolean shariahCompliant) {
         this.name = name;
         this.code = code;
         this.badge = badge;
         this.badgeColorRes = badgeColorRes;
         this.sector = sector;
         this.price = price;
+        this.shariahCompliant = shariahCompliant;
     }
 }

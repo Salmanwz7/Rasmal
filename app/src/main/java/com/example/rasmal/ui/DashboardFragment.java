@@ -193,9 +193,12 @@ public class DashboardFragment extends Fragment {
             nameByCode.put(code, name);
             valueBySector.merge(sector, positionValue, Double::sum);
 
+            String shariahLabel = st == null ? ""
+                    : st.shariahCompliant ? " · " + getString(R.string.shariah_compliant_short)
+                    : " · " + getString(R.string.shariah_mixed_short);
             rows.add(new Holding(
                     name, code, badge, color,
-                    code + " · " + sector,
+                    code + " · " + sector + shariahLabel,
                     "SAR " + money(shares * price),
                     signedPct(changePct),
                     changePct >= 0));
