@@ -72,6 +72,9 @@
     <string name="see_all">See all</string>
     <string name="no_holdings_yet">No holdings yet — add a stock to get started.</string>
     <string name="dashboard_load_error">Couldn\'t load your portfolio. Check your connection.</string>
+    <string name="performance">Performance</string>
+    <string name="performance_empty">No trade history yet — this chart fills in once you confirm your first trade.</string>
+    <string name="portfolio_health">Portfolio health</string>
     <string name="catalog_load_error">Couldn\'t load stocks: %1$s</string>
 
     <!-- AI Recommendation -->

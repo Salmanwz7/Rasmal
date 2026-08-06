@@ -112,6 +112,14 @@ public class ApiClient {
         enqueueArray(req, cb);
     }
 
+    /** GET /rest/v1/transactions → the current user's executed trade ledger, oldest first. */
+    public void getTransactions(Callback<JSONArray> cb) {
+        Request req = signed(rest()
+                + "/transactions?select=code,side,shares,price,created_at&order=created_at.asc");
+        if (req == null) { cb.onError("You're signed out. Please sign in again."); return; }
+        enqueueArray(req, cb);
+    }
+
     /** GET /rest/v1/profiles → the current user's profile row, or an empty object. */
     public void getProfile(Callback<JSONObject> cb) {
         Request req = signed(rest() + "/profiles?select=risk_profile,liquidity,onboarded&limit=1");

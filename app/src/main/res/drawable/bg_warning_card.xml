@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Soft-amber card background for concentration/health warnings, mirrors bg_hero_gradient. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="#1F1A0E" />
+    <corners android:radius="@dimen/radius_lg" />
+    <stroke
+        android:width="@dimen/border_width"
+        android:color="@color/warning" />
+</shape>
