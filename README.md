@@ -13,7 +13,7 @@ Rasmal is a native Android app that lets a user sign up, describe their portfoli
 > ℹ️ **Status: real backend, wired end‑to‑end. Sprint 3 in progress.**
 > The app runs on a **Supabase backend** — email/password **Auth**, a Postgres database with **Row‑Level Security**, and **Edge Functions** that score Saudi stocks and proxy an LLM for recommendations and chat. **No third‑party API keys ship in the APK**; the app talks only to Edge Functions and PostgREST using the signed‑in user's JWT.
 >
-> The dashboard **performance chart is now real**, rebuilt from your own transaction ledger. Still outstanding: company **financial statements** are hand‑seeded (the free market‑data tier omits them), the **Shariah** label is a hardcoded placeholder, the **News** tab has layouts but no screen behind it yet, and the **Alerts** screen needs its backing table (see [Known gaps](#-known-gaps)). Recommendations are **AI analysis, not financial advice.** See the [backlog status](#-backlog-status) for the exact picture.
+> The dashboard **performance chart**, the **Shariah compliance filter** and the **market news feed** are all real now. One story is still short of done — **earnings alerts** have their screen and schema but nothing yet populating the calendar — and company **financial statements** remain hand‑seeded, since the free market‑data tier omits them (see [Known gaps](#-known-gaps)). Recommendations are **AI analysis, not financial advice.** See the [backlog status](#-backlog-status) for the exact picture.
 
 ---
 
@@ -49,10 +49,13 @@ Rasmal is a native Android app that lets a user sign up, describe their portfoli
   - **Concentration warnings (real)** — flags when a single stock exceeds **25%** or one sector exceeds **40%** of the portfolio, surfacing the more severe of the two.
 - **Portfolio tab (real)** — manage holdings any time after onboarding: add, **edit**, or **remove** a holding, and edit your available liquidity. Changes sync to Supabase and the portfolio recalculates.
 - **AI Recommendation (real)** — a hybrid scoring engine ranks Saudi companies for your risk profile and an LLM narrates it: amount to invest, buy range, target, stop, reasoning bullets, and a confidence level.
+- **AI Opportunities (real)** — a market‑wide ranked list of candidates rather than a single pick; tap any one to open the full recommendation.
+- **Shariah compliance filter (real)** — a company counts as نقية only if it passes **both** screens: a business/sector test (conventional interest‑based banks fail; Sharia‑supervised Islamic banks pass) **and** a debt ratio under **30%**, computed at query time from `financial_statements`. Because the ratio is re‑read each quarter, the label is not a frozen value.
+- **Market news feed (real)** — marketaux headlines cached server‑side by `market-refresh`, browsable on the News tab.
 - **Trade Confirmation (real)** — after a recommendation, confirm whether you **bought or sold**, enter the **actual price and quantity**, and the portfolio updates (weighted‑average cost on buys; reduce/close on sells). Each trade is stored in a per‑user ledger.
 - **AI Chat (real)** — ask about your portfolio or any Saudi stock; answers come from the LLM with your conversation history as context. Replies are rendered through a lightweight markdown formatter.
 - **Profile & Settings (real)** — edit your display name, switch your **risk profile** (persisted to Supabase and immediately reflected in recommendations), and sign out securely.
-- **Alerts** — an in‑app feed of earnings notifications for your holdings, with unread badging and tap‑to‑dismiss. ⚠️ *Needs its backing table — see [Known gaps](#-known-gaps).*
+- **Alerts** — an in‑app feed of earnings notifications for your holdings, with unread badging and tap‑to‑dismiss. ⚠️ *Schema is in place, but nothing populates the earnings calendar yet — see [Known gaps](#-known-gaps).*
 
 ### Screen flow
 
@@ -73,7 +76,7 @@ Once you're past onboarding, a **bottom navigation bar** appears on the main scr
 | Home | Dashboard |
 | Portfolio | Manage holdings + liquidity |
 | AI Chat | Chat assistant |
-| News | *Not wired yet — shows "coming soon"* |
+| News | Market news feed |
 | Profile | Profile & Settings |
 
 > Note: **Sign In routes to the Dashboard** if you've onboarded, otherwise to onboarding. The onboarding questions appear the first time through.
@@ -98,16 +101,14 @@ Sprints 1–2 are complete; Sprint 3 is underway. Legend: ✅ done · 🟡 parti
 | 010 | AI Chat | AI Chat Assistant | ✅ | LLM answers grounded in the user's data + conversation history; markdown rendered. |
 | 014 | Dashboard | Portfolio Health Analysis | ✅ | Over‑concentration warnings — >25% single stock, >40% single sector. |
 | 015 | Profile | Profile and Settings | ✅ | Edit display name, change risk profile (persisted), secure logout. Reachable from the Profile tab. |
+| 011 | Market Data | Shariah Compliance Filter | ✅ | Two real screens: a per‑company business/sector flag (`shariah_sector_compliant`) plus a <30% debt‑ratio test computed from seeded `financial_statements`. |
+| 012 | Market Data | Market News Feed | ✅ | `NewsFragment` over the marketaux news cached by `market-refresh`, on the News tab. |
 | 013 | Notifications | Earnings Alerts | 🟡 | Screen, adapter, unread badge, API calls and the `alerts` + `earnings_calendar` schema are all in place — but **nothing populates the calendar yet**, and delivery is in‑app only (no push). |
-| 012 | Market Data | Market News Feed | 🟡 | Backend caches marketaux news into `news`; **layouts exist but no fragment/nav entry** — the News tab still shows "coming soon". |
-| 011 | Market Data | Shariah Compliance Filter | ⬜ | Still a hardcoded نقية label in layouts; needs a data source + classification. |
 
 ### ⚠️ Known gaps
 
-Two Sprint 3 stories are further from done than their commits suggest — worth knowing before you demo:
-
-- **Alerts (013)** — `0005_alerts.sql` now creates the `alerts` table (RLS‑scoped, client may only flip `read`) plus an `earnings_calendar` reference table and `generate_earnings_alerts()` to fan entries out to holders. What's still missing is a **source of earnings dates**: until something populates `earnings_calendar`, the fan‑out has nothing to do and the feed stays empty. Wiring it into `market-refresh` is the next step.
-- **News feed (012)** — commit `b763a75` added `fragment_news.xml` and `item_market_news.xml` only. There is no `NewsFragment`, no adapter, and no `newsFragment` destination in `nav_graph.xml`, so the bottom‑nav News tab falls through to the "coming soon" toast in `MainActivity`.
+- **Earnings alerts (013)** — `0006_alerts.sql` creates the `alerts` table (RLS‑scoped, client may only flip `read`) plus an `earnings_calendar` reference table and `generate_earnings_alerts()` to fan entries out to holders. What's still missing is a **source of earnings dates**: until something populates `earnings_calendar`, the fan‑out has nothing to do and the feed stays empty. Wiring it into `market-refresh` is the next step.
+- **Financial statements** are still hand‑seeded (the free market‑data tier omits them). The Shariah debt‑ratio screen reads from them, so its accuracy is bounded by that seed data.
 
 ---
 
@@ -151,8 +152,8 @@ app/src/main/
     └── values/                    # colors, strings, dimens, styles, themes
 
 supabase/                          # the backend (see supabase/README.md)
-├── migrations/                    # 0001 schema + RLS · 0002 seed · 0003 profiles
-│                                  # 0004 transactions · 0005 alerts + earnings calendar
+├── migrations/                    # 0001 schema + RLS · 0002 seed · 0003 profiles · 0004 transactions
+│                                  # 0005 shariah · 0006 alerts + earnings calendar
 ├── functions/                     # recommendations, chat, market-refresh (Deno/TS) + _shared/
 ├── scripts/                       # fetch_statements.ts, generated seed SQL
 └── deploy.ps1                     # one-shot deploy helper for Windows
@@ -211,9 +212,7 @@ supabase functions deploy recommendations chat market-refresh
 
 ## 🗺 Roadmap — remaining in Sprint 3
 
-- **012 Market news feed** — build `NewsFragment` + adapter over the existing layouts, add the `newsFragment` destination, and point the News tab at it. The backend already caches the data.
 - **013 Earnings alerts** — populate `earnings_calendar` from a real source and call `select public.generate_earnings_alerts();` from `market-refresh` on its schedule, then consider push delivery beyond the in‑app feed.
-- **011 Shariah compliance filter** — classify each stock نقية / مختلطة from a real source instead of the hardcoded label.
-- **Real financial statements** — replace the hand‑seeded `financial_statements` rows once a data source covering them is in place.
+- **Real financial statements** — replace the hand‑seeded `financial_statements` rows once a data source covering them is in place. This also tightens the Shariah debt‑ratio screen.
 
-**Done since the last README update:** performance chart (005), portfolio health analysis (014), profile & settings (015), and reaching holdings management after onboarding via the Portfolio tab (006).
+Everything else in the backlog is done: **011** Shariah filter, **012** news feed, **014** portfolio health, **015** profile & settings, plus the performance chart (**005**) and reaching holdings management after onboarding (**006**).
