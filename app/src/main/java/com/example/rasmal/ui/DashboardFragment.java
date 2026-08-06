@@ -58,6 +58,11 @@ public class DashboardFragment extends Fragment {
                 NavHostFragment.findNavController(this)
                         .navigate(R.id.action_dashboard_to_profileSettings));
 
+        binding.bellButton.setOnClickListener(v ->
+                NavHostFragment.findNavController(this)
+                        .navigate(R.id.action_dashboard_to_alerts));
+        loadUnreadCount();
+
         greetUser();
         loadPortfolio();
     }
@@ -67,6 +72,16 @@ public class DashboardFragment extends Fragment {
         String name = s != null && s.fullName != null && !s.fullName.isEmpty()
                 ? s.fullName.split(" ")[0] : null;
         if (name != null) binding.greeting.setText("Salam, " + name);
+    }
+    private void loadUnreadCount() {
+        api.getUnreadAlertCount(new ApiClient.Callback<Integer>() {
+            @Override public void onSuccess(Integer count) {
+                if (binding == null) return;
+                binding.bellBadge.setVisibility(count > 0 ? View.VISIBLE : View.GONE);
+                binding.bellBadge.setText(count > 9 ? "9+" : String.valueOf(count));
+            }
+            @Override public void onError(String message) { /* badge just stays hidden */ }
+        });
     }
 
     /** Loads the company catalog, then the user's saved liquidity, then holdings + live quotes. */

@@ -101,6 +101,10 @@
         <action
             android:id="@+id/action_dashboard_to_aiChat"
             app:destination="@id/aiChatFragment" />
+
+        <action
+            android:id="@+id/action_dashboard_to_alerts"
+            app:destination="@id/alertsFragment" />
     </fragment>
 
     <fragment
@@ -124,4 +128,8 @@
         android:id="@+id/aiChatFragment"
         android:name="com.example.rasmal.ui.AIChatFragment"
         android:label="AI Chat" />
+    <fragment
+        android:id="@+id/alertsFragment"
+        android:name="com.example.rasmal.ui.AlertsFragment"
+        android:label="Alerts" />
 </navigation>

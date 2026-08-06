@@ -39,9 +39,12 @@
             </LinearLayout>
 
             <FrameLayout
+                android:id="@+id/bell_button"
                 android:layout_width="44dp"
                 android:layout_height="44dp"
-                android:background="@drawable/bg_circle_surface">
+                android:background="@drawable/bg_circle_surface"
+                android:clickable="true"
+                android:focusable="true">
 
                 <ImageView
                     android:layout_width="22dp"
@@ -50,6 +53,26 @@
                     android:contentDescription="Notifications"
                     android:src="@drawable/ic_bell"
                     tools:ignore="HardcodedText" />
+
+                <TextView
+                    android:id="@+id/bell_badge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="top|end"
+                    android:layout_marginTop="2dp"
+                    android:layout_marginEnd="2dp"
+                    android:background="@drawable/bg_pill_red"
+                    android:minWidth="16dp"
+                    android:minHeight="16dp"
+                    android:gravity="center"
+                    android:paddingHorizontal="4dp"
+                    android:text="1"
+                    android:textColor="@android:color/white"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:visibility="gone"
+                    tools:ignore="HardcodedText"
+                    tools:visibility="visible" />
             </FrameLayout>
             <FrameLayout
                 android:id="@+id/settings_icon"
